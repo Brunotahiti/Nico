@@ -2,166 +2,182 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>Veille immo Tahiti</title>
+  <title>Méthode Nico</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Alerte dès qu'une nouvelle annonce immobilière paraît sur immobilier.pf ou petitesannonces.pf">
-  <meta name="theme-color" content="#071a2b">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f2f7">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000">
+  <meta name="color-scheme" content="light dark">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Veille immo">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Méthode Nico">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <link rel="icon" href="/icons/icon-192.png">
   <style>
     :root {
-      --bg: #071a2b; --bg-2: #0b2238; --card: #10293f; --card-2: #173553; --line: rgba(148, 197, 230, .14);
-      --text: #eaf4fb; --muted: #8fb0c7; --faint: #5f80a0;
-      --accent: #2dd4bf; --accent-2: #0ea5a0; --accent-text: #04201c;
-      --new: #fb7185; --ok: #34d399; --warn: #fbbf24; --err: #f87171;
-      --immo: #60a5fa; --pa: #c084fc;
-      --r: 18px; --r-s: 12px; --shadow: 0 10px 30px rgba(0, 0, 0, .35);
-      --tabbar: 64px;
+      color-scheme: light dark;
+      --bg: #f2f2f7; --bg-el: #ffffff; --bg-el-2: #f2f2f7; --fill: rgba(120, 120, 128, .12); --fill-2: rgba(120, 120, 128, .2);
+      --label: #000000; --label-2: rgba(60, 60, 67, .6); --label-3: rgba(60, 60, 67, .3);
+      --sep: rgba(60, 60, 67, .22); --blue: #007aff; --green: #34c759; --orange: #ff9500; --red: #ff3b30; --indigo: #5856d6; --teal: #30b0c7; --purple: #af52de; --gray: #8e8e93;
+      --bar: rgba(249, 249, 249, .82); --shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 8px 24px rgba(0, 0, 0, .06);
+      --tabbar: 50px; --r: 16px; --r-s: 12px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #000000; --bg-el: #1c1c1e; --bg-el-2: #2c2c2e; --fill: rgba(120, 120, 128, .24); --fill-2: rgba(120, 120, 128, .36);
+        --label: #ffffff; --label-2: rgba(235, 235, 245, .6); --label-3: rgba(235, 235, 245, .3);
+        --sep: rgba(84, 84, 88, .65); --blue: #0a84ff; --green: #30d158; --orange: #ff9f0a; --red: #ff453a; --indigo: #5e5ce6; --teal: #40c8e0; --purple: #bf5af2; --gray: #8e8e93;
+        --bar: rgba(29, 29, 31, .78); --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .35);
+      }
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html { background: var(--bg); }
     body {
-      margin: 0; color: var(--text); background: radial-gradient(1200px 500px at 50% -200px, #12405c 0%, var(--bg) 60%);
-      font: 16px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Inter, sans-serif; -webkit-text-size-adjust: 100%;
-      min-height: 100dvh; padding-bottom: calc(var(--tabbar) + env(safe-area-inset-bottom));
+      margin: 0; background: var(--bg); color: var(--label);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Inter, system-ui, sans-serif;
+      font-size: 17px; line-height: 1.35; -webkit-font-smoothing: antialiased; -webkit-text-size-adjust: 100%;
+      min-height: 100dvh; padding-bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) + 16px);
     }
-    .wrap { max-width: 680px; margin: 0 auto; padding: 0 16px; }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 0 16px; }
 
-    /* Barre du haut */
-    .topbar { position: sticky; top: 0; z-index: 20; padding-top: env(safe-area-inset-top); background: rgba(7, 26, 43, .75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--line); }
-    .topbar .wrap { display: flex; align-items: center; gap: 12px; height: 60px; }
-    .logo { width: 38px; height: 38px; border-radius: 11px; box-shadow: 0 4px 14px rgba(45, 212, 191, .25); }
-    .brand { flex: 1; min-width: 0; }
-    .brand h1 { font-size: 1.05rem; margin: 0; letter-spacing: -.01em; }
-    .brand p { margin: 0; font-size: .75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .live { display: flex; align-items: center; gap: 6px; font-size: .72rem; color: var(--muted); background: var(--card); border: 1px solid var(--line); padding: 6px 10px; border-radius: 999px; }
-    .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 rgba(52, 211, 153, .6); animation: pulse 2s infinite; }
-    .pulse.err { background: var(--err); animation: none; } .pulse.warn { background: var(--warn); animation: none; }
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, .6); } 70% { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); } }
+    /* Barre compacte (apparaît au défilement) */
+    .navbar { position: sticky; top: 0; z-index: 20; height: calc(44px + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 17px; background: var(--bar); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: .5px solid transparent; transition: border-color .2s; }
+    .navbar span { opacity: 0; transition: opacity .2s; }
+    .navbar.scrolled { border-bottom-color: var(--sep); } .navbar.scrolled span { opacity: 1; }
+    .large-title { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 4px 0 12px; }
+    .large-title h1 { font-size: 34px; font-weight: 700; letter-spacing: .37px; margin: 0; line-height: 1.2; }
+    .large-title .sub { color: var(--label-2); font-size: 15px; margin-top: 2px; }
+    .status-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: var(--label-2); background: var(--fill); padding: 6px 10px; border-radius: 999px; white-space: nowrap; margin-bottom: 4px; }
+    .status-chip i { width: 8px; height: 8px; border-radius: 50%; background: var(--gray); }
+    .status-chip i.ok { background: var(--green); box-shadow: 0 0 0 3px rgba(52, 199, 89, .2); } .status-chip i.warn { background: var(--orange); } .status-chip i.err { background: var(--red); }
 
     /* Onglets */
-    .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: calc(var(--tabbar) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: rgba(7, 26, 43, .85); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid var(--line); display: flex; }
-    .tabbar button { flex: 1; background: none; border: 0; color: var(--faint); font: inherit; font-size: .7rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; position: relative; }
-    .tabbar button svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    .tabbar button.active { color: var(--accent); }
-    .tabbar .count { position: absolute; top: 8px; left: calc(50% + 6px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--new); color: #fff; font-size: .65rem; line-height: 18px; text-align: center; }
-    .view { display: none; padding-top: 16px; animation: fade .25s ease; } .view.active { display: block; }
-    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: calc(var(--tabbar) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: var(--bar); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-top: .5px solid var(--sep); display: flex; }
+    .tabbar button { flex: 1; background: none; border: 0; color: var(--gray); font: inherit; font-size: 10px; font-weight: 500; letter-spacing: -.1px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; cursor: pointer; position: relative; padding: 0; }
+    .tabbar button svg { width: 26px; height: 26px; fill: currentColor; }
+    .tabbar button.active { color: var(--blue); }
+    .tabbar .count { position: absolute; top: 2px; left: calc(50% + 4px); min-width: 17px; height: 17px; padding: 0 5px; border-radius: 999px; background: var(--red); color: #fff; font-size: 11px; font-weight: 600; line-height: 17px; text-align: center; }
+    .view { display: none; animation: fade .22s ease; } .view.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
 
-    /* Éléments génériques */
-    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
-    .card h2 { font-size: 1.05rem; margin: 0 0 6px; letter-spacing: -.01em; }
-    .card .sub { color: var(--muted); font-size: .88rem; margin: 0 0 14px; }
-    .btn { font: inherit; font-weight: 600; border: 0; border-radius: 14px; padding: 14px 18px; cursor: pointer; transition: transform .08s, opacity .2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn:active { transform: scale(.98); }
-    .btn:disabled { opacity: .45; cursor: default; }
-    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--accent-text); width: 100%; font-size: 1.05rem; box-shadow: 0 8px 24px rgba(45, 212, 191, .3); }
-    .btn-ghost { background: var(--card-2); color: var(--text); border: 1px solid var(--line); }
-    .btn-danger { background: rgba(248, 113, 113, .12); color: var(--err); border: 1px solid rgba(248, 113, 113, .3); }
-    .btn-row { display: flex; gap: 10px; margin-top: 12px; } .btn-row .btn { flex: 1; padding: 12px 10px; font-size: .9rem; }
-    .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 0 10px; } .chips::-webkit-scrollbar { display: none; }
-    .chip { flex: none; font: inherit; font-size: .85rem; font-weight: 600; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--muted); cursor: pointer; }
-    .chip.active { background: var(--accent); color: var(--accent-text); border-color: transparent; }
-    .toggles { display: flex; flex-wrap: wrap; gap: 8px; }
-    .toggle { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card-2); color: var(--muted); font-size: .9rem; font-weight: 600; cursor: pointer; user-select: none; }
-    .toggle input { display: none; }
-    .toggle:has(input:checked) { background: rgba(45, 212, 191, .16); border-color: rgba(45, 212, 191, .5); color: var(--text); }
-    .toggle .tick { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--faint); display: inline-grid; place-items: center; font-size: .7rem; }
-    .toggle:has(input:checked) .tick { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
-    .field { margin-top: 14px; } .field label { display: block; font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
-    .field input { width: 100%; font: inherit; padding: 13px 14px; border-radius: var(--r-s); border: 1px solid var(--line); background: var(--bg-2); color: var(--text); outline: none; }
-    .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45, 212, 191, .2); }
-    .field small { display: block; color: var(--faint); font-size: .78rem; margin-top: 6px; }
-    .search { position: relative; margin-bottom: 10px; }
-    .search input { width: 100%; font: inherit; padding: 13px 14px 13px 42px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); color: var(--text); outline: none; }
-    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: var(--faint); fill: none; stroke-width: 2; }
-    .hidden { display: none !important; }
+    /* Listes groupées iOS */
+    .group { background: var(--bg-el); border-radius: var(--r); overflow: hidden; margin-bottom: 20px; }
+    .group-title { font-size: 13px; font-weight: 400; color: var(--label-2); text-transform: uppercase; letter-spacing: .3px; padding: 0 16px 7px; }
+    .group-foot { font-size: 13px; color: var(--label-2); padding: 7px 16px 0; margin-top: -14px; margin-bottom: 20px; }
+    .row { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 10px 16px; position: relative; }
+    .row + .row::before { content: ""; position: absolute; left: 16px; right: 0; top: 0; border-top: .5px solid var(--sep); }
+    .row .ic { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: none; color: #fff; }
+    .row .ic svg { width: 18px; height: 18px; fill: currentColor; }
+    .row .t { flex: 1; min-width: 0; } .row .t small { display: block; color: var(--label-2); font-size: 13px; margin-top: 1px; }
+    .row .v { color: var(--label-2); font-size: 15px; text-align: right; }
+    .row input[type=text], .row input[type=number], .row input[type=password] { flex: 1; font: inherit; border: 0; background: none; color: var(--label); outline: none; text-align: right; min-width: 0; }
+    .row input::placeholder { color: var(--label-3); }
+    .ic.blue { background: var(--blue); } .ic.green { background: var(--green); } .ic.orange { background: var(--orange); } .ic.indigo { background: var(--indigo); } .ic.teal { background: var(--teal); } .ic.purple { background: var(--purple); } .ic.gray { background: var(--gray); } .ic.red { background: var(--red); }
 
-    /* État des notifications */
-    .hero { text-align: center; padding: 10px 0 6px; }
-    .hero .ring { width: 92px; height: 92px; border-radius: 50%; margin: 0 auto 14px; display: grid; place-items: center; font-size: 2.4rem; background: var(--card-2); border: 1px solid var(--line); }
-    .hero .ring.on { background: radial-gradient(circle at 30% 30%, rgba(45, 212, 191, .4), rgba(45, 212, 191, .08)); border-color: rgba(45, 212, 191, .5); box-shadow: 0 0 40px rgba(45, 212, 191, .25); }
-    .hero .ring.off { background: radial-gradient(circle at 30% 30%, rgba(251, 191, 36, .25), rgba(251, 191, 36, .05)); border-color: rgba(251, 191, 36, .4); }
-    .hero .ring.err { background: rgba(248, 113, 113, .12); border-color: rgba(248, 113, 113, .4); }
-    .hero h2 { margin: 0 0 4px; font-size: 1.25rem; } .hero p { margin: 0; color: var(--muted); font-size: .92rem; }
-    .steps { counter-reset: s; list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 10px; }
-    .steps li { display: flex; gap: 12px; align-items: flex-start; font-size: .92rem; }
-    .steps li::before { counter-increment: s; content: counter(s); flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-text); font-weight: 700; font-size: .8rem; display: grid; place-items: center; }
-    .steps b { color: var(--text); } .steps span { color: var(--muted); }
+    /* Interrupteur iOS */
+    .switch { position: relative; width: 51px; height: 31px; flex: none; }
+    .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .switch span { position: absolute; inset: 0; border-radius: 31px; background: var(--fill-2); transition: background .2s; }
+    .switch span::after { content: ""; position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 50%; background: #fff; box-shadow: 0 3px 8px rgba(0, 0, 0, .15), 0 1px 1px rgba(0, 0, 0, .08); transition: transform .2s cubic-bezier(.2, .8, .2, 1); }
+    .switch input:checked + span { background: var(--green); } .switch input:checked + span::after { transform: translateX(20px); }
 
-    /* Statistiques */
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
-    .stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 12px; text-align: center; }
-    .stat b { display: block; font-size: 1.4rem; letter-spacing: -.02em; } .stat span { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-    .srow { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
-    .srow:first-of-type { border-top: 0; }
-    .srow .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--faint); flex: none; }
-    .srow .dot.ok { background: var(--ok); } .srow .dot.err { background: var(--err); } .srow .dot.warn { background: var(--warn); }
-    .srow .n { flex: 1; } .srow .n small { display: block; color: var(--muted); font-size: .8rem; }
-    .srow .v { color: var(--muted); font-size: .85rem; text-align: right; }
+    /* Boutons */
+    .btn { font: inherit; font-weight: 600; font-size: 17px; border: 0; border-radius: 14px; padding: 15px 18px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; transition: transform .1s, opacity .2s, filter .2s; width: 100%; }
+    .btn:active { transform: scale(.98); filter: brightness(.92); } .btn:disabled { opacity: .4; cursor: default; }
+    .btn-filled { background: var(--blue); color: #fff; }
+    .btn-tinted { background: rgba(0, 122, 255, .12); color: var(--blue); }
+    .btn-gray { background: var(--fill); color: var(--label); }
+    .btn-red { background: rgba(255, 59, 48, .12); color: var(--red); }
+    .btn-row { display: flex; gap: 10px; margin-top: 10px; } .btn-row .btn { font-size: 15px; padding: 13px 10px; }
+    .actions { padding: 0 0 20px; }
 
-    /* Annonces */
-    .list { display: flex; flex-direction: column; gap: 12px; }
-    .ad { display: block; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; text-decoration: none; color: inherit; box-shadow: var(--shadow); transition: transform .1s; }
-    .ad:active { transform: scale(.99); }
-    .ad.new { border-color: rgba(251, 113, 133, .55); }
-    .ad .cover { position: relative; aspect-ratio: 16 / 9; background: linear-gradient(135deg, #123a52, #0d2a3e); display: grid; place-items: center; }
+    /* Recherche et filtres */
+    .search { position: relative; margin: 0 0 12px; }
+    .search input { width: 100%; font: inherit; font-size: 17px; padding: 9px 12px 9px 36px; border-radius: 10px; border: 0; background: var(--fill); color: var(--label); outline: none; }
+    .search input::placeholder { color: var(--label-3); }
+    .search svg { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; fill: var(--label-3); }
+    .segmented { display: flex; background: var(--fill); border-radius: 9px; padding: 2px; margin-bottom: 10px; position: relative; }
+    .segmented button { flex: 1; border: 0; background: none; font: inherit; font-size: 13px; font-weight: 500; color: var(--label); padding: 7px 4px; border-radius: 7px; cursor: pointer; transition: background .2s, box-shadow .2s; white-space: nowrap; }
+    .segmented button.active { background: var(--bg-el); box-shadow: 0 3px 8px rgba(0, 0, 0, .12), 0 1px 1px rgba(0, 0, 0, .04); font-weight: 600; }
+    .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 0 14px; } .chips::-webkit-scrollbar { display: none; }
+    .chip { flex: none; font: inherit; font-size: 13px; font-weight: 600; padding: 7px 12px; border-radius: 999px; border: 0; background: var(--fill); color: var(--label); cursor: pointer; }
+    .chip.active { background: var(--blue); color: #fff; }
+    .chip.new.active { background: var(--red); }
+
+    /* Cartes d'annonces */
+    .section-head { display: flex; justify-content: space-between; align-items: baseline; margin: 0 4px 10px; }
+    .section-head h2 { font-size: 22px; font-weight: 700; letter-spacing: .35px; margin: 0; } .section-head span { color: var(--label-2); font-size: 15px; }
+    .list { display: flex; flex-direction: column; gap: 16px; }
+    .ad { display: block; background: var(--bg-el); border-radius: var(--r); overflow: hidden; text-decoration: none; color: inherit; box-shadow: var(--shadow); transition: transform .15s cubic-bezier(.2, .8, .2, 1); }
+    .ad:active { transform: scale(.985); }
+    .ad .cover { position: relative; aspect-ratio: 16 / 10; background: linear-gradient(160deg, var(--bg-el-2), var(--fill)); display: grid; place-items: center; }
     .ad .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .ad .cover .ph { font-size: 2.6rem; opacity: .6; }
-    .ad .cover .pills { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 6px; }
-    .pill { font-size: .68rem; font-weight: 700; padding: 4px 9px; border-radius: 999px; color: #fff; text-transform: uppercase; letter-spacing: .04em; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-    .pill.immo { background: rgba(96, 165, 250, .85); } .pill.pa { background: rgba(192, 132, 252, .85); }
-    .pill.part { background: rgba(52, 211, 153, .9); color: #04201c; } .pill.pro { background: rgba(148, 163, 184, .8); }
-    .pill.new { background: var(--new); margin-left: auto; animation: pop .4s ease; }
-    @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
-    .ad .body { padding: 14px 16px 16px; }
-    .ad .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
-    .ad .price { font-size: 1.2rem; font-weight: 800; letter-spacing: -.02em; color: var(--accent); }
-    .ad .when { font-size: .78rem; color: var(--faint); white-space: nowrap; }
-    .ad .title { font-weight: 600; margin-top: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .ad .meta { color: var(--muted); font-size: .85rem; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
-    .ad .meta span::before { content: "·"; margin-right: 8px; color: var(--faint); } .ad .meta span:first-child::before { content: none; }
-    .ad .desc { color: var(--muted); font-size: .85rem; margin-top: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .ad .kind { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: var(--card-2); color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
-    .empty { text-align: center; color: var(--muted); padding: 48px 20px; }
-    .empty .big { font-size: 2.5rem; margin-bottom: 8px; }
-    .section-head { display: flex; justify-content: space-between; align-items: baseline; margin: 4px 0 10px; }
-    .section-head h2 { font-size: 1.1rem; margin: 0; } .section-head span { color: var(--muted); font-size: .82rem; }
-    .skeleton .ad .cover { background: linear-gradient(90deg, var(--card) 25%, var(--card-2) 50%, var(--card) 75%); background-size: 200% 100%; animation: sh 1.2s infinite; }
+    .ad .cover svg { width: 44px; height: 44px; fill: var(--label-3); }
+    .ad .cover .pills { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 6px; align-items: center; }
+    .pill { font-size: 11px; font-weight: 700; padding: 4px 8px; border-radius: 999px; letter-spacing: .2px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); background: rgba(255, 255, 255, .85); color: #1c1c1e; }
+    @media (prefers-color-scheme: dark) { .pill { background: rgba(44, 44, 46, .85); color: #fff; } }
+    .pill.immo { color: var(--blue); } .pill.pa { color: var(--purple); } .pill.part { color: var(--green); } .pill.pro { color: var(--gray); }
+    .pill.new { margin-left: auto; background: var(--red); color: #fff; }
+    .ad .body { padding: 12px 16px 14px; }
+    .ad .row1 { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .ad .price { font-size: 22px; font-weight: 700; letter-spacing: .3px; }
+    .ad .when { font-size: 13px; color: var(--label-2); white-space: nowrap; }
+    .ad .title { font-size: 15px; font-weight: 500; margin-top: 2px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ad .meta { color: var(--label-2); font-size: 13px; margin-top: 5px; display: flex; flex-wrap: wrap; gap: 3px 0; }
+    .ad .meta span + span::before { content: "·"; margin: 0 6px; color: var(--label-3); }
+    .ad .desc { color: var(--label-2); font-size: 13px; margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .empty { text-align: center; color: var(--label-2); padding: 56px 20px; font-size: 15px; }
+    .empty svg { width: 48px; height: 48px; fill: var(--label-3); margin-bottom: 10px; }
+    .skeleton .ad .cover { background: linear-gradient(90deg, var(--bg-el-2) 25%, var(--fill) 50%, var(--bg-el-2) 75%); background-size: 200% 100%; animation: sh 1.2s infinite; }
     @keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+    @media (min-width: 720px) { .list { display: grid; grid-template-columns: 1fr 1fr; } }
+
+    /* Alertes : en-tête d'état */
+    .hero { text-align: center; padding: 28px 20px 22px; }
+    .hero .ring { width: 76px; height: 76px; border-radius: 22px; margin: 0 auto 14px; display: grid; place-items: center; background: var(--fill); color: var(--gray); }
+    .hero .ring svg { width: 38px; height: 38px; fill: currentColor; }
+    .hero .ring.on { background: linear-gradient(145deg, var(--green), #1fa84a); color: #fff; box-shadow: 0 10px 28px rgba(52, 199, 89, .35); }
+    .hero .ring.off { background: linear-gradient(145deg, var(--blue), var(--indigo)); color: #fff; box-shadow: 0 10px 28px rgba(0, 122, 255, .3); }
+    .hero .ring.err { background: rgba(255, 59, 48, .12); color: var(--red); }
+    .hero h2 { margin: 0 0 4px; font-size: 22px; font-weight: 700; letter-spacing: .35px; } .hero p { margin: 0; color: var(--label-2); font-size: 15px; }
+    .steps { counter-reset: s; list-style: none; padding: 0 16px 6px; margin: 0; }
+    .steps li { display: flex; gap: 12px; padding: 10px 0; font-size: 15px; position: relative; }
+    .steps li + li::before { content: ""; position: absolute; left: 38px; right: 0; top: 0; border-top: .5px solid var(--sep); }
+    .steps li::after { counter-increment: s; content: counter(s); order: -1; flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--blue); color: #fff; font-weight: 600; font-size: 13px; display: grid; place-items: center; }
+    .steps b { display: block; font-weight: 600; } .steps span { color: var(--label-2); font-size: 13px; }
+
+    /* État */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+    .stat { background: var(--bg-el); border-radius: var(--r); padding: 14px 10px; text-align: center; }
+    .stat b { display: block; font-size: 26px; font-weight: 700; letter-spacing: .3px; } .stat span { font-size: 12px; color: var(--label-2); }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gray); flex: none; }
+    .dot.ok { background: var(--green); } .dot.warn { background: var(--orange); } .dot.err { background: var(--red); }
 
     /* Toast */
-    .toast { position: fixed; left: 16px; right: 16px; bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) + 12px); z-index: 40; background: var(--card-2); color: var(--text); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; box-shadow: var(--shadow); font-size: .92rem; transform: translateY(20px); opacity: 0; transition: .25s; pointer-events: none; max-width: 640px; margin: 0 auto; }
+    .toast { position: fixed; left: 16px; right: 16px; top: calc(env(safe-area-inset-top) + 10px); z-index: 40; margin: 0 auto; max-width: 420px; background: var(--bg-el); color: var(--label); border-radius: 999px; padding: 12px 18px; box-shadow: 0 8px 30px rgba(0, 0, 0, .18); font-size: 15px; font-weight: 500; text-align: center; transform: translateY(-20px); opacity: 0; transition: .3s cubic-bezier(.2, .8, .2, 1); pointer-events: none; }
     .toast.show { transform: none; opacity: 1; }
-    .toast.ok { border-color: rgba(52, 211, 153, .5); } .toast.err { border-color: rgba(248, 113, 113, .5); }
-    footer { color: var(--faint); font-size: .75rem; text-align: center; padding: 24px 0 12px; }
-    @media (min-width: 720px) { .list { display: grid; grid-template-columns: 1fr 1fr; } }
+    .toast.ok { color: var(--green); } .toast.err { color: var(--red); }
+    footer { color: var(--label-3); font-size: 12px; text-align: center; padding: 10px 0 20px; }
+    .hidden { display: none !important; }
   </style>
 </head>
 <body>
-  <div class="topbar"><div class="wrap">
-    <img class="logo" src="/icons/icon-192.png" alt="">
-    <div class="brand"><h1>Veille immo Tahiti</h1><p>immobilier.pf · petitesannonces.pf</p></div>
-    <div class="live" id="live"><span class="pulse warn"></span><span id="live-text">…</span></div>
-  </div></div>
+  <div class="navbar" id="navbar"><span id="navbar-title">Méthode Nico</span></div>
+  <div class="wrap">
 
-  <main class="wrap">
     <!-- Annonces -->
     <section class="view active" id="view-ads">
-      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="q" placeholder="Rechercher (commune, F3, piscine…)"></div>
-      <div class="chips" id="filters">
-        <button class="chip active" data-f="all">Tout</button>
-        <button class="chip" data-f="new">Nouveautés</button>
-        <button class="chip" data-f="vente">Vente</button>
-        <button class="chip" data-f="location">Location</button>
-        <button class="chip" data-f="particulier">Particuliers</button>
-        <button class="chip" data-f="immobilier.pf">immobilier.pf</button>
-        <button class="chip" data-f="petitesannonces.pf">petitesannonces.pf</button>
+      <div class="large-title"><div><h1>Méthode Nico</h1><div class="sub">Annonces immobilières · immobilier.pf · petitesannonces.pf</div></div><div class="status-chip" id="live"><i class="warn"></i><span id="live-text">…</span></div></div>
+      <div class="search"><svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 2.2a5.8 5.8 0 1 0 0 11.6 5.8 5.8 0 0 0 0-11.6zm6.1 11 5.2 5.2-1.6 1.6-5.2-5.2z"/></svg><input type="search" id="q" placeholder="Rechercher" autocomplete="off"></div>
+      <div class="segmented" id="seg">
+        <button data-f="all" class="active">Tout</button><button data-f="vente">Vente</button><button data-f="location">Location</button><button data-f="particulier">Particuliers</button>
+      </div>
+      <div class="chips" id="chips">
+        <button class="chip new" data-c="new">Nouveautés</button>
+        <button class="chip" data-c="immobilier.pf">immobilier.pf</button>
+        <button class="chip" data-c="petitesannonces.pf">petitesannonces.pf</button>
       </div>
       <div class="section-head"><h2>Dernières annonces</h2><span id="ads-count"></span></div>
       <div class="list skeleton" id="list"><a class="ad"><div class="cover"></div><div class="body"><div class="title">&nbsp;</div></div></a><a class="ad"><div class="cover"></div><div class="body"><div class="title">&nbsp;</div></div></a></div>
@@ -169,124 +185,97 @@
 
     <!-- Alertes -->
     <section class="view" id="view-alerts">
-      <div class="card">
+      <div class="large-title"><div><h1>Alertes</h1><div class="sub">Notifications sur cet appareil</div></div></div>
+      <div class="group">
         <div class="hero">
-          <div class="ring off" id="ring">🔔</div>
+          <div class="ring off" id="ring"><svg viewBox="0 0 24 24"><path d="M12 2a1.5 1.5 0 0 1 1.5 1.5v.7A6.5 6.5 0 0 1 18.5 10.5v3.6l1.7 2.6c.6.9 0 2.3-1.2 2.3H5c-1.2 0-1.8-1.4-1.2-2.3l1.7-2.6v-3.6A6.5 6.5 0 0 1 10.5 4.2v-.7A1.5 1.5 0 0 1 12 2zm-2.5 18h5a2.5 2.5 0 0 1-5 0z"/></svg></div>
           <h2 id="notif-title">Notifications</h2>
           <p id="notif-text">Chargement…</p>
         </div>
         <ol class="steps hidden" id="ios-install">
-          <li><div><b>Ouvrez cette page dans Safari</b><br><span>Les notifications ne fonctionnent qu'avec une application installée.</span></div></li>
-          <li><div><b>Touchez Partager</b><br><span>Le carré avec une flèche vers le haut, en bas de l'écran.</span></div></li>
-          <li><div><b>« Sur l'écran d'accueil » puis Ajouter</b><br><span>iOS 16.4 ou plus récent est nécessaire.</span></div></li>
-          <li><div><b>Ouvrez l'application depuis l'écran d'accueil</b><br><span>Puis revenez ici pour activer les alertes.</span></div></li>
+          <li><div><b>Ouvrez cette page dans Safari</b><span>Les notifications ne fonctionnent qu'une fois l'app installée.</span></div></li>
+          <li><div><b>Touchez Partager</b><span>Le carré avec une flèche vers le haut.</span></div></li>
+          <li><div><b>« Sur l'écran d'accueil », puis Ajouter</b><span>iOS 16.4 ou plus récent.</span></div></li>
+          <li><div><b>Ouvrez l'app depuis l'écran d'accueil</b><span>Puis revenez ici pour activer les alertes.</span></div></li>
         </ol>
-        <div class="field hidden" id="access-field"><label>Code d'accès</label><input type="password" id="access-code" autocomplete="off" placeholder="Demandez-le au propriétaire du serveur"></div>
-        <div style="margin-top:16px"><button class="btn btn-primary" id="btn-enable">Activer les alertes</button></div>
-        <div class="btn-row">
-          <button class="btn btn-ghost" id="btn-test" disabled>Tester</button>
-          <button class="btn btn-danger" id="btn-disable" disabled>Désactiver</button>
-        </div>
+        <div class="row hidden" id="access-field"><div class="ic gray"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 0 1 5 5v3h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1V7a5 5 0 0 1 5-5zm0 2.2A2.8 2.8 0 0 0 9.2 7v3h5.6V7A2.8 2.8 0 0 0 12 4.2z"/></svg></div><div class="t">Code d'accès</div><input type="password" id="access-code" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Requis"></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-filled" id="btn-enable">Activer les alertes</button>
+        <div class="btn-row"><button class="btn btn-tinted" id="btn-test" disabled>Envoyer un test</button><button class="btn btn-red" id="btn-disable" disabled>Désactiver</button></div>
       </div>
 
-      <div class="card" id="prefs-card">
-        <h2>Ce qui vous intéresse</h2>
-        <p class="sub">Par défaut, toutes les nouvelles annonces vous sont envoyées. Affinez si vous le souhaitez.</p>
-        <div class="field"><label>Sites</label><div class="toggles">
-          <label class="toggle"><input type="checkbox" name="sources" value="immobilier.pf" checked><span class="tick">✓</span>immobilier.pf</label>
-          <label class="toggle"><input type="checkbox" name="sources" value="petitesannonces.pf" checked><span class="tick">✓</span>petitesannonces.pf</label>
-        </div></div>
-        <div class="field"><label>Type</label><div class="toggles">
-          <label class="toggle"><input type="checkbox" name="kinds" value="vente" checked><span class="tick">✓</span>Vente</label>
-          <label class="toggle"><input type="checkbox" name="kinds" value="location" checked><span class="tick">✓</span>Location</label>
-          <label class="toggle"><input type="checkbox" name="kinds" value="autre" checked><span class="tick">✓</span>Autre</label>
-        </div></div>
-        <div class="field"><label>Annonceur</label><div class="toggles">
-          <label class="toggle"><input type="checkbox" name="sellers" value="particulier" checked><span class="tick">✓</span>Particuliers</label>
-          <label class="toggle"><input type="checkbox" name="sellers" value="pro" checked><span class="tick">✓</span>Agences et pros</label>
-        </div></div>
-        <div class="field"><label>Prix maximum (XPF)</label><input type="number" id="max-price" inputmode="numeric" placeholder="Sans limite"></div>
-        <div class="field"><label>Mots-clés</label><input type="text" id="keywords" placeholder="punaauia, f3, piscine"><small>Séparés par des virgules. Si renseignés, seules les annonces qui en contiennent au moins un vous sont envoyées.</small></div>
-        <div style="margin-top:16px"><button class="btn btn-ghost" id="btn-save" style="width:100%" disabled>Enregistrer les préférences</button></div>
+      <div class="group-title">Sites surveillés</div>
+      <div class="group">
+        <label class="row"><div class="ic blue"><svg viewBox="0 0 24 24"><path d="M12 3 2 11h3v9h5v-6h4v6h5v-9h3z"/></svg></div><div class="t">immobilier.pf</div><div class="switch"><input type="checkbox" name="sources" value="immobilier.pf" checked><span></span></div></label>
+        <label class="row"><div class="ic purple"><svg viewBox="0 0 24 24"><path d="M4 4h16v3H4zm0 5h16v3H4zm0 5h10v3H4z"/></svg></div><div class="t">petitesannonces.pf</div><div class="switch"><input type="checkbox" name="sources" value="petitesannonces.pf" checked><span></span></div></label>
       </div>
+
+      <div class="group-title">Type d'annonce</div>
+      <div class="group">
+        <label class="row"><div class="ic green"><svg viewBox="0 0 24 24"><path d="M3 6h18v4H3zm0 6h18v6H3z"/></svg></div><div class="t">Vente</div><div class="switch"><input type="checkbox" name="kinds" value="vente" checked><span></span></div></label>
+        <label class="row"><div class="ic orange"><svg viewBox="0 0 24 24"><path d="M14 2a6 6 0 0 1 4.5 9.9L22 15.5V19h-3.5l-1-1h-2v-2h-2l-1.6-1.6A6 6 0 1 1 14 2zm1.5 3a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg></div><div class="t">Location</div><div class="switch"><input type="checkbox" name="kinds" value="location" checked><span></span></div></label>
+        <label class="row"><div class="ic teal"><svg viewBox="0 0 24 24"><path d="M12 2 4 7v10l8 5 8-5V7zm0 2.4 5.8 3.6L12 11.6 6.2 8z"/></svg></div><div class="t">Autre<small>Saisonnier, colocation, terrain…</small></div><div class="switch"><input type="checkbox" name="kinds" value="autre" checked><span></span></div></label>
+      </div>
+
+      <div class="group-title">Annonceur</div>
+      <div class="group">
+        <label class="row"><div class="ic green"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 12c5 0 9 2.5 9 5.5V22H3v-2.5C3 16.5 7 14 12 14z"/></svg></div><div class="t">Particuliers</div><div class="switch"><input type="checkbox" name="sellers" value="particulier" checked><span></span></div></label>
+        <label class="row"><div class="ic gray"><svg viewBox="0 0 24 24"><path d="M3 21V8l9-5 9 5v13h-6v-6h-6v6z"/></svg></div><div class="t">Agences et pros</div><div class="switch"><input type="checkbox" name="sellers" value="pro" checked><span></span></div></label>
+      </div>
+
+      <div class="group-title">Critères</div>
+      <div class="group">
+        <div class="row"><div class="ic indigo"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm.9 4h-1.8v1.3c-1.7.3-2.8 1.3-2.8 2.8 0 1.6 1 2.4 3 2.9 1.4.4 1.8.7 1.8 1.3 0 .6-.6 1-1.5 1-1 0-1.7-.5-1.9-1.4H8c.1 1.7 1.3 2.8 3.1 3.1V18h1.8v-1.3c1.8-.3 2.9-1.3 2.9-2.9 0-1.7-1.1-2.5-3.1-3-1.3-.3-1.7-.6-1.7-1.2 0-.5.5-.9 1.3-.9.9 0 1.5.4 1.6 1.2h1.9c-.1-1.6-1.2-2.6-2.9-2.9z"/></svg></div><div class="t">Prix maximum</div><input type="number" id="max-price" inputmode="numeric" placeholder="Sans limite"><div class="v">XPF</div></div>
+        <div class="row"><div class="ic orange"><svg viewBox="0 0 24 24"><path d="M3 5h18v2H3zm0 6h12v2H3zm0 6h18v2H3z"/></svg></div><div class="t">Mots-clés</div><input type="text" id="keywords" placeholder="punaauia, f3, piscine"></div>
+      </div>
+      <div class="group-foot">Si des mots-clés sont renseignés, seules les annonces qui en contiennent au moins un vous sont envoyées.</div>
+      <div class="actions"><button class="btn btn-gray" id="btn-save" disabled>Enregistrer les préférences</button></div>
     </section>
 
     <!-- État -->
     <section class="view" id="view-status">
+      <div class="large-title"><div><h1>État</h1><div class="sub" id="st-interval">…</div></div></div>
       <div class="stats">
         <div class="stat"><b id="st-total">–</b><span>annonces</span></div>
         <div class="stat"><b id="st-today">–</b><span>aujourd'hui</span></div>
         <div class="stat"><b id="st-devices">–</b><span>appareils</span></div>
       </div>
-      <div class="card">
-        <h2>Surveillance</h2>
-        <p class="sub" id="st-interval">…</p>
-        <div id="sources"></div>
-        <div class="btn-row">
-          <button class="btn btn-ghost" id="btn-refresh">Actualiser</button>
-          <button class="btn btn-ghost" id="btn-check">Vérifier maintenant</button>
-        </div>
-      </div>
-      <div class="card">
-        <h2>Comment ça marche</h2>
-        <p class="sub" style="margin:0">Le serveur interroge les deux sites en continu. Chaque annonce jamais vue est enregistrée ici et envoyée en notification aux appareils abonnés, selon leurs préférences. Un appui sur la notification ouvre directement l'annonce.</p>
-      </div>
+      <div class="group-title">Sources</div>
+      <div class="group" id="sources"><div class="row"><div class="t"><small>Première vérification en cours…</small></div></div></div>
+      <div class="btn-row" style="margin:-10px 0 20px"><button class="btn btn-gray" id="btn-refresh">Actualiser</button><button class="btn btn-tinted" id="btn-check">Vérifier maintenant</button></div>
+      <div class="group-title">Comment ça marche</div>
+      <div class="group"><div class="row" style="padding:14px 16px"><div class="t" style="font-size:15px;color:var(--label-2)">Le serveur interroge les deux sites en continu. Chaque annonce jamais vue est enregistrée ici et envoyée en notification aux appareils abonnés, selon leurs préférences. Un appui sur la notification ouvre directement l'annonce.</div></div></div>
       <footer>Les annonces appartiennent à leurs sites respectifs. Cette application ne fait que vous prévenir.</footer>
     </section>
-  </main>
+  </div>
 
   <nav class="tabbar">
-    <button class="active" data-v="ads"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Annonces<span class="count hidden" id="tab-count"></span></button>
-    <button data-v="alerts"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg>Alertes</button>
-    <button data-v="status"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M4 15l4-5 4 3 4-6 4 4"/></svg>État</button>
+    <button class="active" data-v="ads"><svg viewBox="0 0 24 24"><path d="M12 3 2 11.5h2.5V21h5.5v-6h4v6h5.5v-9.5H22z"/></svg>Annonces<span class="count hidden" id="tab-count"></span></button>
+    <button data-v="alerts"><svg viewBox="0 0 24 24"><path d="M12 2a1.5 1.5 0 0 1 1.5 1.5v.7A6.5 6.5 0 0 1 18.5 10.5v3.6l1.7 2.6c.6.9 0 2.3-1.2 2.3H5c-1.2 0-1.8-1.4-1.2-2.3l1.7-2.6v-3.6A6.5 6.5 0 0 1 10.5 4.2v-.7A1.5 1.5 0 0 1 12 2zm-2.5 18h5a2.5 2.5 0 0 1-5 0z"/></svg>Alertes</button>
+    <button data-v="status"><svg viewBox="0 0 24 24"><path d="M4 13h4v8H4zm6-6h4v14h-4zm6-4h4v18h-4z"/></svg>État</button>
   </nav>
   <div class="toast" id="toast"></div>
 
 <script>
 (() => {
   const $ = (s) => document.querySelector(s);
-  const state = { config: null, reg: null, sub: null, listings: [], filter: 'all', query: '', lastVisit: Number(localStorage.getItem('lastVisit') || Date.now()), newCount: 0 };
+  const state = { config: null, reg: null, sub: null, listings: [], seg: 'all', chip: null, query: '', lastVisit: Number(localStorage.getItem('lastVisit') || Date.now()), newCount: 0 };
   const ua = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   const pushSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   let toastTimer;
+  const TITLES = { ads: 'Méthode Nico', alerts: 'Alertes', status: 'État' };
 
-  function toast(text, cls = '') {
-    const el = $('#toast'); el.textContent = text; el.className = `toast show ${cls}`;
-    clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
-  }
-  function urlB64ToUint8Array(b64) {
-    const padding = '='.repeat((4 - (b64.length % 4)) % 4);
-    const raw = atob((b64 + padding).replace(/-/g, '+').replace(/_/g, '/'));
-    return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
-  }
+  function toast(text, cls = '') { const el = $('#toast'); el.textContent = text; el.className = `toast show ${cls}`; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 3200); }
+  function urlB64ToUint8Array(b64) { const padding = '='.repeat((4 - (b64.length % 4)) % 4); const raw = atob((b64 + padding).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...raw].map((c) => c.charCodeAt(0))); }
   const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  function timeAgo(iso) {
-    if (!iso) return '';
-    const d = (Date.now() - new Date(iso).getTime()) / 1000;
-    if (d < 60) return 'à l\'instant';
-    if (d < 3600) return `il y a ${Math.floor(d / 60)} min`;
-    if (d < 86400) return `il y a ${Math.floor(d / 3600)} h`;
-    return `il y a ${Math.floor(d / 86400)} j`;
-  }
-  function readPrefs() {
-    const vals = (n) => [...document.querySelectorAll(`input[name=${n}]:checked`)].map((i) => i.value);
-    return { sources: vals('sources'), kinds: vals('kinds'), sellers: vals('sellers'), maxPrice: Number($('#max-price').value) || null, keywords: $('#keywords').value.split(',').map((k) => k.trim()).filter(Boolean) };
-  }
-  function writePrefs(p) {
-    for (const i of document.querySelectorAll('input[name=sources]')) i.checked = p.sources.includes(i.value);
-    for (const i of document.querySelectorAll('input[name=kinds]')) i.checked = p.kinds.includes(i.value);
-    for (const i of document.querySelectorAll('input[name=sellers]')) i.checked = (p.sellers || ['particulier', 'pro']).includes(i.value);
-    $('#max-price').value = p.maxPrice || ''; $('#keywords').value = (p.keywords || []).join(', ');
-  }
+  function timeAgo(iso) { if (!iso) return ''; const d = (Date.now() - new Date(iso).getTime()) / 1000; if (d < 60) return 'à l\'instant'; if (d < 3600) return `il y a ${Math.floor(d / 60)} min`; if (d < 86400) return `il y a ${Math.floor(d / 3600)} h`; return `il y a ${Math.floor(d / 86400)} j`; }
+  function readPrefs() { const vals = (n) => [...document.querySelectorAll(`input[name=${n}]:checked`)].map((i) => i.value); return { sources: vals('sources'), kinds: vals('kinds'), sellers: vals('sellers'), maxPrice: Number($('#max-price').value) || null, keywords: $('#keywords').value.split(',').map((k) => k.trim()).filter(Boolean) }; }
+  function writePrefs(p) { for (const i of document.querySelectorAll('input[name=sources]')) i.checked = p.sources.includes(i.value); for (const i of document.querySelectorAll('input[name=kinds]')) i.checked = p.kinds.includes(i.value); for (const i of document.querySelectorAll('input[name=sellers]')) i.checked = (p.sellers || ['particulier', 'pro']).includes(i.value); $('#max-price').value = p.maxPrice || ''; $('#keywords').value = (p.keywords || []).join(', '); }
   function headers() { const h = { 'Content-Type': 'application/json' }; const c = $('#access-code').value; if (c) h['x-access-code'] = c; return h; }
-  async function api(path, body) {
-    const res = await fetch(path, body ? { method: 'POST', headers: headers(), body: JSON.stringify(body) } : { cache: 'no-store' });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
-    return data;
-  }
+  async function api(path, body) { const res = await fetch(path, body ? { method: 'POST', headers: headers(), body: JSON.stringify(body) } : { cache: 'no-store' }); const data = await res.json().catch(() => ({})); if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`); return data; }
 
   /* ---------- Notifications ---------- */
   function renderNotif() {
@@ -295,11 +284,11 @@
     $('#ios-install').classList.toggle('hidden', !needInstall);
     const on = Boolean(state.sub);
     $('#btn-save').disabled = !on; $('#btn-test').disabled = !on; $('#btn-disable').disabled = !on;
-    if (needInstall) { ring.className = 'ring off'; ring.textContent = '📲'; title.textContent = 'Une étape avant d\'activer'; text.textContent = 'Installez l\'application sur votre écran d\'accueil en suivant les étapes ci-dessous.'; enable.disabled = true; return; }
-    if (!pushSupported) { ring.className = 'ring err'; ring.textContent = '🚫'; title.textContent = 'Non pris en charge'; text.textContent = 'Ce navigateur ne gère pas les notifications push. Sur iPhone, utilisez Safari.'; enable.disabled = true; return; }
-    if (Notification.permission === 'denied') { ring.className = 'ring err'; ring.textContent = '🔕'; title.textContent = 'Notifications bloquées'; text.textContent = 'Réactivez-les dans Réglages › Notifications › Veille immo.'; enable.disabled = true; return; }
-    if (on) { ring.className = 'ring on'; ring.textContent = '🔔'; title.textContent = 'Alertes activées'; text.textContent = 'Vous serez prévenu dès qu\'une nouvelle annonce paraît.'; enable.disabled = true; enable.textContent = 'Alertes activées ✓'; }
-    else { ring.className = 'ring off'; ring.textContent = '🔔'; title.textContent = 'Alertes désactivées'; text.textContent = 'Activez-les pour être le premier informé des nouvelles annonces.'; enable.disabled = false; enable.textContent = 'Activer les alertes'; }
+    if (needInstall) { ring.className = 'ring off'; title.textContent = 'Installez l\'app d\'abord'; text.textContent = 'Ajoutez cette page à votre écran d\'accueil en suivant les étapes ci-dessous.'; enable.disabled = true; return; }
+    if (!pushSupported) { ring.className = 'ring err'; title.textContent = 'Non pris en charge'; text.textContent = 'Ce navigateur ne gère pas les notifications push. Sur iPhone, utilisez Safari.'; enable.disabled = true; return; }
+    if (Notification.permission === 'denied') { ring.className = 'ring err'; title.textContent = 'Notifications bloquées'; text.textContent = 'Réactivez-les dans Réglages › Notifications › Méthode Nico.'; enable.disabled = true; return; }
+    if (on) { ring.className = 'ring on'; title.textContent = 'Alertes activées'; text.textContent = 'Vous serez prévenu dès qu\'une nouvelle annonce paraît.'; enable.disabled = true; enable.textContent = 'Alertes activées'; }
+    else { ring.className = 'ring off'; title.textContent = 'Alertes désactivées'; text.textContent = 'Soyez le premier informé des nouvelles annonces.'; enable.disabled = false; enable.textContent = 'Activer les alertes'; }
   }
   async function subscribe() {
     try {
@@ -307,47 +296,41 @@
       if (perm !== 'granted') { renderNotif(); return toast('Permission refusée.', 'err'); }
       const sub = await state.reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(state.config.vapidPublicKey) });
       const r = await api('/api/subscribe', { subscription: sub.toJSON(), prefs: readPrefs() });
-      state.sub = sub; writePrefs(r.prefs); renderNotif();
-      toast('C\'est prêt ! Vous recevrez une alerte à chaque nouvelle annonce.', 'ok');
+      state.sub = sub; writePrefs(r.prefs); renderNotif(); toast('Alertes activées', 'ok');
     } catch (err) { toast(`Activation impossible : ${err.message}`, 'err'); }
   }
-  async function savePrefs() {
-    try { const r = await api('/api/subscribe', { subscription: state.sub.toJSON(), prefs: readPrefs() }); writePrefs(r.prefs); toast('Préférences enregistrées.', 'ok'); }
-    catch (err) { toast(err.message, 'err'); }
-  }
-  async function unsubscribe() {
-    try { await api('/api/unsubscribe', { endpoint: state.sub.endpoint }); await state.sub.unsubscribe(); state.sub = null; renderNotif(); toast('Alertes désactivées.'); }
-    catch (err) { toast(err.message, 'err'); }
-  }
-  async function testNotif() {
-    try { await api('/api/test-notification', { subscription: state.sub.toJSON() }); toast('Notification de test envoyée.', 'ok'); }
-    catch (err) { toast(err.message, 'err'); }
-  }
+  async function savePrefs() { try { const r = await api('/api/subscribe', { subscription: state.sub.toJSON(), prefs: readPrefs() }); writePrefs(r.prefs); toast('Préférences enregistrées', 'ok'); } catch (err) { toast(err.message, 'err'); } }
+  async function unsubscribe() { try { await api('/api/unsubscribe', { endpoint: state.sub.endpoint }); await state.sub.unsubscribe(); state.sub = null; renderNotif(); toast('Alertes désactivées'); } catch (err) { toast(err.message, 'err'); } }
+  async function testNotif() { try { await api('/api/test-notification', { subscription: state.sub.toJSON() }); toast('Notification de test envoyée', 'ok'); } catch (err) { toast(err.message, 'err'); } }
 
   /* ---------- Annonces ---------- */
-  function isNew(l) { return l.seenAt && new Date(l.seenAt).getTime() > state.lastVisit; }
+  const isNew = (l) => l.seenAt && new Date(l.seenAt).getTime() > state.lastVisit;
+  const HOUSE = '<svg viewBox="0 0 24 24"><path d="M12 3 2 11.5h2.5V21h5.5v-6h4v6h5.5v-9.5H22z"/></svg>';
+  const KEY = '<svg viewBox="0 0 24 24"><path d="M14 2a6 6 0 0 1 4.5 9.9L22 15.5V19h-3.5l-1-1h-2v-2h-2l-1.6-1.6A6 6 0 1 1 14 2zm1.5 3a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>';
+  const LEAF = '<svg viewBox="0 0 24 24"><path d="M21 3c-9 0-15 4-16 12 0 1 .2 2 .6 3L3 21l1.5 1.5 2.6-2.6c1 .4 2 .6 3 .6 8-1 12-7 12-16zM8 17l6-6 1 1-6 6z"/></svg>';
   function renderList() {
     const q = state.query.trim().toLowerCase();
-    const f = state.filter;
     const items = state.listings.filter((l) => {
-      if (f === 'new' && !isNew(l)) return false;
-      if (f === 'particulier' && l.seller !== 'particulier') return false;
-      if (f !== 'all' && f !== 'new' && f !== 'particulier' && l.source !== f && l.kind !== f) return false;
+      if (state.seg === 'particulier' && l.seller !== 'particulier') return false;
+      if (state.seg !== 'all' && state.seg !== 'particulier' && l.kind !== state.seg) return false;
+      if (state.chip === 'new' && !isNew(l)) return false;
+      if (state.chip && state.chip !== 'new' && l.source !== state.chip) return false;
       if (q && !`${l.title} ${l.description} ${l.location} ${l.category} ${l.agency}`.toLowerCase().includes(q)) return false;
       return true;
     });
     const list = $('#list'); list.classList.remove('skeleton');
-    $('#ads-count').textContent = items.length ? `${items.length} annonce${items.length > 1 ? 's' : ''}` : '';
-    if (!items.length) { list.innerHTML = `<div class="empty"><div class="big">🌴</div>${state.listings.length ? 'Aucune annonce ne correspond.' : 'Aucune annonce pour le moment.<br>La liste se remplit au fil des publications.'}</div>`; return; }
+    $('#ads-count').textContent = items.length ? `${items.length}` : '';
+    if (!items.length) { list.innerHTML = `<div class="empty">${HOUSE}<br>${state.listings.length ? 'Aucune annonce ne correspond.' : 'Aucune annonce pour le moment.<br>La liste se remplit au fil des publications.'}</div>`; return; }
     list.innerHTML = items.map((l) => {
       const src = l.source === 'immobilier.pf' ? 'immo' : 'pa';
       const meta = [l.location, l.area ? `${l.area} m²` : '', l.agency].filter(Boolean).map((m) => `<span>${esc(m)}</span>`).join('');
       const sellerPill = l.seller === 'particulier' ? '<span class="pill part">Particulier</span>' : l.seller === 'pro' ? '<span class="pill pro">Pro</span>' : '';
-      return `<a class="ad ${isNew(l) ? 'new' : ''}" href="${esc(l.url)}" target="_blank" rel="noopener">
-        <div class="cover">${l.image ? `<img src="${esc(l.image)}" alt="" loading="lazy" onerror="this.remove()">` : `<div class="ph">${l.kind === 'location' ? '🔑' : l.category.toLowerCase().includes('terrain') ? '🌿' : '🏠'}</div>`}
+      const glyph = l.kind === 'location' ? KEY : (l.category || '').toLowerCase().includes('terrain') ? LEAF : HOUSE;
+      return `<a class="ad" href="${esc(l.url)}" target="_blank" rel="noopener">
+        <div class="cover">${l.image ? `<img src="${esc(l.image)}" alt="" loading="lazy" onerror="this.remove()">` : glyph}
           <div class="pills"><span class="pill ${src}">${esc(l.source)}</span>${sellerPill}${isNew(l) ? '<span class="pill new">Nouveau</span>' : ''}</div></div>
         <div class="body">
-          <div class="row"><div class="price">${esc(l.priceLabel || 'Prix non précisé')}</div><div class="when">${timeAgo(l.seenAt || l.publishedAt)}</div></div>
+          <div class="row1"><div class="price">${esc(l.priceLabel || 'Prix non précisé')}</div><div class="when">${timeAgo(l.seenAt || l.publishedAt)}</div></div>
           <div class="title">${esc(l.title)}</div>
           ${meta ? `<div class="meta">${meta}</div>` : ''}
           ${l.description ? `<div class="desc">${esc(l.description)}</div>` : ''}
@@ -358,45 +341,43 @@
     const sources = Object.entries(d.sources || {});
     const STALE_MS = 30 * 60 * 1000;
     const health = (s) => s.ok ? 'ok' : (s.lastOkAt && Date.now() - new Date(s.lastOkAt).getTime() < STALE_MS ? 'warn' : 'err');
-    const allOk = sources.length && sources.every(([, s]) => health(s) !== 'err');
-    $('#live').querySelector('.pulse').className = `pulse ${!d.lastCheck ? 'warn' : allOk ? '' : 'err'}`;
-    $('#live-text').textContent = d.lastCheck ? (allOk ? 'En veille' : 'Problème') : 'Démarrage';
+    const worst = sources.map(([, s]) => health(s));
+    const liveCls = !d.lastCheck ? 'warn' : worst.includes('err') ? 'err' : worst.includes('warn') ? 'warn' : 'ok';
+    $('#live').querySelector('i').className = liveCls; $('#live-text').textContent = !d.lastCheck ? 'Démarrage' : liveCls === 'ok' ? 'En veille' : liveCls === 'warn' ? 'Perturbé' : 'Problème';
     const today = new Date().toDateString();
     $('#st-total').textContent = d.listings.length;
     $('#st-today').textContent = d.listings.filter((l) => new Date(l.seenAt || l.publishedAt).toDateString() === today).length;
     $('#st-devices').textContent = d.subscribers;
-    $('#st-interval').textContent = `Vérification toutes les ${state.config?.checkIntervalMin ?? '?'} minutes · dernière : ${d.lastCheck ? timeAgo(d.lastCheck) : 'jamais'}`;
-    $('#sources').innerHTML = sources.map(([name, s]) => {
-      const h = health(s);
-      const detail = s.ok ? `${s.count} annonces lues` : h === 'warn' ? `échec passager, dernière réussite ${timeAgo(s.lastOkAt)}` : esc(s.error || 'erreur');
-      return `<div class="srow"><span class="dot ${h}"></span><div class="n">${esc(name)}<small>${detail}</small></div><div class="v">${timeAgo(s.checkedAt)}</div></div>`;
-    }).join('') || '<p class="sub">Première vérification en cours…</p>';
+    $('#st-interval').textContent = `Toutes les ${state.config?.checkIntervalMin ?? '?'} min · dernière vérification ${d.lastCheck ? timeAgo(d.lastCheck) : 'jamais'}`;
+    $('#sources').innerHTML = sources.map(([name, s]) => { const h = health(s); const detail = s.ok ? `${s.count} annonces lues` : h === 'warn' ? `Échec passager · dernière réussite ${timeAgo(s.lastOkAt)}` : esc(s.error || 'Erreur'); return `<div class="row"><span class="dot ${h}"></span><div class="t">${esc(name)}<small>${detail}</small></div><div class="v">${timeAgo(s.checkedAt)}</div></div>`; }).join('') || '<div class="row"><div class="t"><small>Première vérification en cours…</small></div></div>';
     state.newCount = d.listings.filter(isNew).length;
     const tc = $('#tab-count'); tc.textContent = state.newCount; tc.classList.toggle('hidden', !state.newCount);
   }
   async function loadListings() {
     try { const d = await api('/api/listings?limit=200'); state.listings = d.listings; renderStatus(d); renderList(); }
-    catch (err) { $('#live-text').textContent = 'Hors ligne'; $('#live').querySelector('.pulse').className = 'pulse err'; toast(`Serveur injoignable : ${err.message}`, 'err'); }
+    catch (err) { $('#live-text').textContent = 'Hors ligne'; $('#live').querySelector('i').className = 'err'; toast(`Serveur injoignable : ${err.message}`, 'err'); }
   }
 
   /* ---------- Navigation ---------- */
   function showView(v) {
     for (const s of document.querySelectorAll('.view')) s.classList.toggle('active', s.id === `view-${v}`);
     for (const b of document.querySelectorAll('.tabbar button')) b.classList.toggle('active', b.dataset.v === v);
-    window.scrollTo({ top: 0 });
-    if (v === 'ads') { localStorage.setItem('lastVisit', String(Date.now())); }
+    $('#navbar-title').textContent = TITLES[v]; window.scrollTo({ top: 0 });
+    if (v === 'ads') localStorage.setItem('lastVisit', String(Date.now()));
   }
+  window.addEventListener('scroll', () => $('#navbar').classList.toggle('scrolled', window.scrollY > 36), { passive: true });
   document.querySelector('.tabbar').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showView(b.dataset.v); });
-  $('#filters').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; state.filter = b.dataset.f; for (const x of $('#filters').children) x.classList.toggle('active', x === b); renderList(); });
+  $('#seg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; state.seg = b.dataset.f; for (const x of $('#seg').children) x.classList.toggle('active', x === b); renderList(); });
+  $('#chips').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; state.chip = state.chip === b.dataset.c ? null : b.dataset.c; for (const x of $('#chips').children) x.classList.toggle('active', x.dataset.c === state.chip); renderList(); });
   $('#q').addEventListener('input', (e) => { state.query = e.target.value; renderList(); });
   $('#btn-enable').addEventListener('click', subscribe);
   $('#btn-save').addEventListener('click', savePrefs);
   $('#btn-disable').addEventListener('click', unsubscribe);
   $('#btn-test').addEventListener('click', testNotif);
-  $('#btn-refresh').addEventListener('click', async () => { await loadListings(); toast('Liste actualisée.'); });
+  $('#btn-refresh').addEventListener('click', async () => { await loadListings(); toast('Liste actualisée'); });
   $('#btn-check').addEventListener('click', async () => {
     const b = $('#btn-check'); b.disabled = true; b.textContent = 'Vérification…';
-    try { const r = await api('/api/check-now', {}); toast(r.fresh ? `${r.fresh} nouvelle(s) annonce(s) détectée(s).` : 'Rien de nouveau pour l\'instant.', 'ok'); await loadListings(); }
+    try { const r = await api('/api/check-now', {}); toast(r.fresh ? `${r.fresh} nouvelle(s) annonce(s)` : 'Rien de nouveau pour l\'instant', 'ok'); await loadListings(); }
     catch (err) { toast(err.message, 'err'); }
     finally { b.disabled = false; b.textContent = 'Vérifier maintenant'; }
   });
@@ -414,15 +395,11 @@
       try {
         state.reg = await navigator.serviceWorker.register('/sw.js');
         state.sub = await state.reg.pushManager.getSubscription();
-        if (state.sub) {
-          const r = await api(`/api/prefs?endpoint=${encodeURIComponent(state.sub.endpoint)}`);
-          if (r.subscribed) writePrefs(r.prefs); else state.sub = null;
-        }
+        if (state.sub) { const r = await api(`/api/prefs?endpoint=${encodeURIComponent(state.sub.endpoint)}`); if (r.subscribed) writePrefs(r.prefs); else state.sub = null; }
       } catch (err) { toast(`Service worker : ${err.message}`, 'err'); }
     }
     renderNotif();
     await loadListings();
-    // Première visite ou alertes non activées : on ouvre directement l'onglet Alertes
     if (!state.sub && !localStorage.getItem('seenAlerts')) { showView('alerts'); localStorage.setItem('seenAlerts', '1'); }
     else localStorage.setItem('lastVisit', String(Date.now()));
   }

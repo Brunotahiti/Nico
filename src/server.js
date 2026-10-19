@@ -15,7 +15,7 @@ const CHECK_INTERVAL_MIN = Math.max(1, Number(process.env.CHECK_INTERVAL_MIN) ||
 const VAPID_SUBJECT = process.env.VAPID_SUBJECT || 'mailto:veille-immo@example.com';
 // Mot de passe facultatif : s'il est défini, il faut le saisir dans l'application
 // pour s'abonner (évite que des inconnus utilisent votre serveur).
-const ACCESS_CODE = process.env.ACCESS_CODE || '';
+const ACCESS_CODE = (process.env.ACCESS_CODE || '').trim();
 
 const store = new Store(DATA_DIR);
 const vapid = loadVapidKeys(DATA_DIR);
@@ -28,8 +28,9 @@ app.use(express.json({ limit: '50kb' }));
 
 function checkAccess(req, res) {
   if (!ACCESS_CODE) return true;
-  const code = req.get('x-access-code') || req.body?.accessCode || '';
-  if (code === ACCESS_CODE) return true;
+  // Tolère les espaces et la majuscule automatique ajoutés par le clavier du téléphone
+  const code = String(req.get('x-access-code') || req.body?.accessCode || '').trim();
+  if (code === ACCESS_CODE || code.toLowerCase() === ACCESS_CODE.toLowerCase()) return true;
   res.status(401).json({ error: 'Code d\'accès incorrect' });
   return false;
 }
@@ -103,7 +104,7 @@ app.get('/sw.js', (req, res) => {
 app.use(express.static(path.join(ROOT, 'public'), { maxAge: '1h', etag: true }));
 
 app.listen(PORT, () => {
-  console.log(`Veille immo Tahiti en écoute sur http://localhost:${PORT} (vérification toutes les ${CHECK_INTERVAL_MIN} min)`);
+  console.log(`Méthode Nico en écoute sur http://localhost:${PORT} (vérification toutes les ${CHECK_INTERVAL_MIN} min)`);
   watcher.start();
 });
 

@@ -1,5 +1,5 @@
 // Service worker : réception des notifications push et ouverture de l'annonce.
-const CACHE = 'veille-immo-v1';
+const CACHE = 'methode-nico-v2';
 const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icons/icon-192.png'];
 
 self.addEventListener('install', (event) => {
@@ -30,7 +30,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'Veille immo Tahiti', body: 'Nouvelle annonce', url: '/' };
+  let data = { title: 'Méthode Nico', body: 'Nouvelle annonce', url: '/' };
   try {
     if (event.data) data = { ...data, ...event.data.json() };
   } catch {
