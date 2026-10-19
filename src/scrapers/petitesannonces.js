@@ -6,7 +6,8 @@
 import { fetchWithRetry, decodeEntities } from '../util.js';
 
 export const SOURCE = 'petitesannonces.pf';
-const BASE = 'https://www.petitesannonces.pf';
+// Nom canonique du site (le certificat et les redirections utilisent la forme avec tiret)
+const BASE = 'https://www.petites-annonces.pf';
 const FEED_URL = `${BASE}/rss.php?r=1`;
 
 function kindOf(category) {
@@ -56,7 +57,7 @@ function parseItem(block) {
     agency: '',
     description: text.slice(0, 300),
     image: null,
-    url: link.replace(/^http:/, 'https:'),
+    url: link.replace(/^http:/, 'https:').replace('www.petitesannonces.pf', 'www.petites-annonces.pf'),
     publishedAt: pubDate ? new Date(pubDate).toISOString() : null,
   };
 }

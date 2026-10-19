@@ -11,7 +11,7 @@
 //        FETCH_RELAY_URL=https://xxx.yyy.workers.dev FETCH_RELAY_KEY=<la même chaîne> \
 //        sudo -E bash /opt/veille-immo/deploy/install-vps.sh
 
-const ALLOWED_DEFAULT = 'petitesannonces.pf,immobilier.pf';
+const ALLOWED_DEFAULT = 'petitesannonces.pf,petites-annonces.pf,immobilier.pf';
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 
 export default {

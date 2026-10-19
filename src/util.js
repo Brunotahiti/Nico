@@ -6,7 +6,7 @@ const USER_AGENT =
 // FETCH_RELAY_HOSTS passent par ce relais (voir deploy/relay-worker.js).
 const RELAY_URL = (process.env.FETCH_RELAY_URL || '').trim();
 const RELAY_KEY = (process.env.FETCH_RELAY_KEY || '').trim();
-const RELAY_HOSTS = (process.env.FETCH_RELAY_HOSTS || 'petitesannonces.pf')
+const RELAY_HOSTS = (process.env.FETCH_RELAY_HOSTS || 'petitesannonces.pf,petites-annonces.pf')
   .split(',').map((h) => h.trim().toLowerCase()).filter(Boolean);
 
 export function relayFor(url) {
