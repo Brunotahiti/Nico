@@ -5,7 +5,7 @@
   <title>Veille immo Tahiti</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Alerte dès qu'une nouvelle annonce immobilière paraît sur immobilier.pf ou petitesannonces.pf">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#071a2b">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,249 +15,247 @@
   <link rel="icon" href="/icons/icon-192.png">
   <style>
     :root {
-      --bg: #0f172a; --card: #1e293b; --card-2: #273449; --text: #e2e8f0; --muted: #94a3b8;
-      --accent: #f59e0b; --accent-text: #0f172a; --ok: #22c55e; --warn: #f97316; --err: #ef4444;
-      --immo: #3b82f6; --pa: #a855f7; --radius: 14px;
+      --bg: #071a2b; --bg-2: #0b2238; --card: #10293f; --card-2: #173553; --line: rgba(148, 197, 230, .14);
+      --text: #eaf4fb; --muted: #8fb0c7; --faint: #5f80a0;
+      --accent: #2dd4bf; --accent-2: #0ea5a0; --accent-text: #04201c;
+      --new: #fb7185; --ok: #34d399; --warn: #fbbf24; --err: #f87171;
+      --immo: #60a5fa; --pa: #c084fc;
+      --r: 18px; --r-s: 12px; --shadow: 0 10px 30px rgba(0, 0, 0, .35);
+      --tabbar: 64px;
     }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-text-size-adjust: 100%; }
-    body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
-    .wrap { max-width: 640px; margin: 0 auto; padding: 16px; }
-    header { display: flex; align-items: center; gap: 12px; padding: 8px 0 16px; }
-    header img { width: 44px; height: 44px; border-radius: 12px; }
-    header h1 { font-size: 1.25rem; margin: 0; }
-    header p { margin: 0; color: var(--muted); font-size: .85rem; }
-    .card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
-    .card h2 { font-size: 1rem; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
-    .status { display: flex; flex-wrap: wrap; gap: 8px; font-size: .85rem; color: var(--muted); }
-    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 5px; vertical-align: middle; }
-    .dot.ok { background: var(--ok); } .dot.err { background: var(--err); } .dot.warn { background: var(--warn); }
-    button { font: inherit; border: 0; border-radius: 10px; padding: 12px 16px; cursor: pointer; font-weight: 600; }
-    .btn-primary { background: var(--accent); color: var(--accent-text); width: 100%; font-size: 1.05rem; }
-    .btn-secondary { background: var(--card-2); color: var(--text); }
-    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
-    .btn-row button { flex: 1; }
-    button:disabled { opacity: .5; cursor: default; }
-    .notice { background: var(--card-2); border-left: 4px solid var(--accent); padding: 10px 12px; border-radius: 8px; font-size: .9rem; margin: 10px 0; }
-    .notice.ok { border-color: var(--ok); } .notice.err { border-color: var(--err); }
-    label.chk { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
-    input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); }
-    input[type=text], input[type=number], input[type=password] { width: 100%; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid #334155; background: var(--bg); color: var(--text); }
-    .field { margin: 10px 0; } .field small { color: var(--muted); display: block; margin-top: 4px; }
-    fieldset { border: 0; padding: 0; margin: 8px 0; } legend { color: var(--muted); font-size: .85rem; margin-bottom: 4px; }
-    details summary { cursor: pointer; color: var(--muted); font-size: .9rem; padding: 6px 0; }
-    .list { display: flex; flex-direction: column; gap: 10px; }
-    .item { display: flex; gap: 12px; background: var(--card); border-radius: var(--radius); padding: 12px; text-decoration: none; color: inherit; }
-    .item.new { outline: 2px solid var(--accent); }
-    .thumb { width: 84px; height: 84px; border-radius: 10px; object-fit: cover; background: var(--card-2); flex: none; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
-    .item .body { min-width: 0; flex: 1; }
-    .item .title { font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    .item .meta { color: var(--muted); font-size: .85rem; margin-top: 4px; }
-    .item .price { color: var(--accent); font-weight: 700; margin-top: 4px; }
-    .badge { display: inline-block; font-size: .7rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; color: #fff; text-transform: uppercase; letter-spacing: .03em; }
-    .badge.immo { background: var(--immo); } .badge.pa { background: var(--pa); } .badge.new { background: var(--accent); color: var(--accent-text); }
-    .filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px; }
-    .filters button { white-space: nowrap; padding: 8px 12px; font-size: .85rem; background: var(--card-2); color: var(--text); }
-    .filters button.active { background: var(--accent); color: var(--accent-text); }
-    .empty { color: var(--muted); text-align: center; padding: 24px; }
-    footer { color: var(--muted); font-size: .8rem; text-align: center; padding: 20px 0; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html { background: var(--bg); }
+    body {
+      margin: 0; color: var(--text); background: radial-gradient(1200px 500px at 50% -200px, #12405c 0%, var(--bg) 60%);
+      font: 16px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Inter, sans-serif; -webkit-text-size-adjust: 100%;
+      min-height: 100dvh; padding-bottom: calc(var(--tabbar) + env(safe-area-inset-bottom));
+    }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 0 16px; }
+
+    /* Barre du haut */
+    .topbar { position: sticky; top: 0; z-index: 20; padding-top: env(safe-area-inset-top); background: rgba(7, 26, 43, .75); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--line); }
+    .topbar .wrap { display: flex; align-items: center; gap: 12px; height: 60px; }
+    .logo { width: 38px; height: 38px; border-radius: 11px; box-shadow: 0 4px 14px rgba(45, 212, 191, .25); }
+    .brand { flex: 1; min-width: 0; }
+    .brand h1 { font-size: 1.05rem; margin: 0; letter-spacing: -.01em; }
+    .brand p { margin: 0; font-size: .75rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .live { display: flex; align-items: center; gap: 6px; font-size: .72rem; color: var(--muted); background: var(--card); border: 1px solid var(--line); padding: 6px 10px; border-radius: 999px; }
+    .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 0 rgba(52, 211, 153, .6); animation: pulse 2s infinite; }
+    .pulse.err { background: var(--err); animation: none; } .pulse.warn { background: var(--warn); animation: none; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, .6); } 70% { box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); } }
+
+    /* Onglets */
+    .tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; height: calc(var(--tabbar) + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: rgba(7, 26, 43, .85); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid var(--line); display: flex; }
+    .tabbar button { flex: 1; background: none; border: 0; color: var(--faint); font: inherit; font-size: .7rem; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; position: relative; }
+    .tabbar button svg { width: 24px; height: 24px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .tabbar button.active { color: var(--accent); }
+    .tabbar .count { position: absolute; top: 8px; left: calc(50% + 6px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--new); color: #fff; font-size: .65rem; line-height: 18px; text-align: center; }
+    .view { display: none; padding-top: 16px; animation: fade .25s ease; } .view.active { display: block; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* Éléments génériques */
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); }
+    .card h2 { font-size: 1.05rem; margin: 0 0 6px; letter-spacing: -.01em; }
+    .card .sub { color: var(--muted); font-size: .88rem; margin: 0 0 14px; }
+    .btn { font: inherit; font-weight: 600; border: 0; border-radius: 14px; padding: 14px 18px; cursor: pointer; transition: transform .08s, opacity .2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent-2)); color: var(--accent-text); width: 100%; font-size: 1.05rem; box-shadow: 0 8px 24px rgba(45, 212, 191, .3); }
+    .btn-ghost { background: var(--card-2); color: var(--text); border: 1px solid var(--line); }
+    .btn-danger { background: rgba(248, 113, 113, .12); color: var(--err); border: 1px solid rgba(248, 113, 113, .3); }
+    .btn-row { display: flex; gap: 10px; margin-top: 12px; } .btn-row .btn { flex: 1; padding: 12px 10px; font-size: .9rem; }
+    .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 0 10px; } .chips::-webkit-scrollbar { display: none; }
+    .chip { flex: none; font: inherit; font-size: .85rem; font-weight: 600; padding: 9px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--muted); cursor: pointer; }
+    .chip.active { background: var(--accent); color: var(--accent-text); border-color: transparent; }
+    .toggles { display: flex; flex-wrap: wrap; gap: 8px; }
+    .toggle { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--card-2); color: var(--muted); font-size: .9rem; font-weight: 600; cursor: pointer; user-select: none; }
+    .toggle input { display: none; }
+    .toggle:has(input:checked) { background: rgba(45, 212, 191, .16); border-color: rgba(45, 212, 191, .5); color: var(--text); }
+    .toggle .tick { width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--faint); display: inline-grid; place-items: center; font-size: .7rem; }
+    .toggle:has(input:checked) .tick { background: var(--accent); border-color: var(--accent); color: var(--accent-text); }
+    .field { margin-top: 14px; } .field label { display: block; font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .05em; }
+    .field input { width: 100%; font: inherit; padding: 13px 14px; border-radius: var(--r-s); border: 1px solid var(--line); background: var(--bg-2); color: var(--text); outline: none; }
+    .field input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45, 212, 191, .2); }
+    .field small { display: block; color: var(--faint); font-size: .78rem; margin-top: 6px; }
+    .search { position: relative; margin-bottom: 10px; }
+    .search input { width: 100%; font: inherit; padding: 13px 14px 13px 42px; border-radius: 14px; border: 1px solid var(--line); background: var(--card); color: var(--text); outline: none; }
+    .search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; stroke: var(--faint); fill: none; stroke-width: 2; }
     .hidden { display: none !important; }
-    ol.steps { padding-left: 20px; margin: 6px 0; } ol.steps li { margin: 4px 0; }
+
+    /* État des notifications */
+    .hero { text-align: center; padding: 10px 0 6px; }
+    .hero .ring { width: 92px; height: 92px; border-radius: 50%; margin: 0 auto 14px; display: grid; place-items: center; font-size: 2.4rem; background: var(--card-2); border: 1px solid var(--line); }
+    .hero .ring.on { background: radial-gradient(circle at 30% 30%, rgba(45, 212, 191, .4), rgba(45, 212, 191, .08)); border-color: rgba(45, 212, 191, .5); box-shadow: 0 0 40px rgba(45, 212, 191, .25); }
+    .hero .ring.off { background: radial-gradient(circle at 30% 30%, rgba(251, 191, 36, .25), rgba(251, 191, 36, .05)); border-color: rgba(251, 191, 36, .4); }
+    .hero .ring.err { background: rgba(248, 113, 113, .12); border-color: rgba(248, 113, 113, .4); }
+    .hero h2 { margin: 0 0 4px; font-size: 1.25rem; } .hero p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .steps { counter-reset: s; list-style: none; padding: 0; margin: 14px 0 0; display: flex; flex-direction: column; gap: 10px; }
+    .steps li { display: flex; gap: 12px; align-items: flex-start; font-size: .92rem; }
+    .steps li::before { counter-increment: s; content: counter(s); flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: var(--accent-text); font-weight: 700; font-size: .8rem; display: grid; place-items: center; }
+    .steps b { color: var(--text); } .steps span { color: var(--muted); }
+
+    /* Statistiques */
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+    .stat { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 14px 12px; text-align: center; }
+    .stat b { display: block; font-size: 1.4rem; letter-spacing: -.02em; } .stat span { font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+    .srow { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+    .srow:first-of-type { border-top: 0; }
+    .srow .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--faint); flex: none; }
+    .srow .dot.ok { background: var(--ok); } .srow .dot.err { background: var(--err); }
+    .srow .n { flex: 1; } .srow .n small { display: block; color: var(--muted); font-size: .8rem; }
+    .srow .v { color: var(--muted); font-size: .85rem; text-align: right; }
+
+    /* Annonces */
+    .list { display: flex; flex-direction: column; gap: 12px; }
+    .ad { display: block; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; text-decoration: none; color: inherit; box-shadow: var(--shadow); transition: transform .1s; }
+    .ad:active { transform: scale(.99); }
+    .ad.new { border-color: rgba(251, 113, 133, .55); }
+    .ad .cover { position: relative; aspect-ratio: 16 / 9; background: linear-gradient(135deg, #123a52, #0d2a3e); display: grid; place-items: center; }
+    .ad .cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .ad .cover .ph { font-size: 2.6rem; opacity: .6; }
+    .ad .cover .pills { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 6px; }
+    .pill { font-size: .68rem; font-weight: 700; padding: 4px 9px; border-radius: 999px; color: #fff; text-transform: uppercase; letter-spacing: .04em; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+    .pill.immo { background: rgba(96, 165, 250, .85); } .pill.pa { background: rgba(192, 132, 252, .85); }
+    .pill.new { background: var(--new); margin-left: auto; animation: pop .4s ease; }
+    @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+    .ad .body { padding: 14px 16px 16px; }
+    .ad .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+    .ad .price { font-size: 1.2rem; font-weight: 800; letter-spacing: -.02em; color: var(--accent); }
+    .ad .when { font-size: .78rem; color: var(--faint); white-space: nowrap; }
+    .ad .title { font-weight: 600; margin-top: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ad .meta { color: var(--muted); font-size: .85rem; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px 10px; }
+    .ad .meta span::before { content: "·"; margin-right: 8px; color: var(--faint); } .ad .meta span:first-child::before { content: none; }
+    .ad .desc { color: var(--muted); font-size: .85rem; margin-top: 8px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ad .kind { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 8px; border-radius: 6px; background: var(--card-2); color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+    .empty { text-align: center; color: var(--muted); padding: 48px 20px; }
+    .empty .big { font-size: 2.5rem; margin-bottom: 8px; }
+    .section-head { display: flex; justify-content: space-between; align-items: baseline; margin: 4px 0 10px; }
+    .section-head h2 { font-size: 1.1rem; margin: 0; } .section-head span { color: var(--muted); font-size: .82rem; }
+    .skeleton .ad .cover { background: linear-gradient(90deg, var(--card) 25%, var(--card-2) 50%, var(--card) 75%); background-size: 200% 100%; animation: sh 1.2s infinite; }
+    @keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+    /* Toast */
+    .toast { position: fixed; left: 16px; right: 16px; bottom: calc(var(--tabbar) + env(safe-area-inset-bottom) + 12px); z-index: 40; background: var(--card-2); color: var(--text); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; box-shadow: var(--shadow); font-size: .92rem; transform: translateY(20px); opacity: 0; transition: .25s; pointer-events: none; max-width: 640px; margin: 0 auto; }
+    .toast.show { transform: none; opacity: 1; }
+    .toast.ok { border-color: rgba(52, 211, 153, .5); } .toast.err { border-color: rgba(248, 113, 113, .5); }
+    footer { color: var(--faint); font-size: .75rem; text-align: center; padding: 24px 0 12px; }
+    @media (min-width: 720px) { .list { display: grid; grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <img src="/icons/icon-192.png" alt="">
-    <div>
-      <h1>Veille immo Tahiti</h1>
-      <p>immobilier.pf · petitesannonces.pf</p>
-    </div>
-  </header>
+  <div class="topbar"><div class="wrap">
+    <img class="logo" src="/icons/icon-192.png" alt="">
+    <div class="brand"><h1>Veille immo Tahiti</h1><p>immobilier.pf · petitesannonces.pf</p></div>
+    <div class="live" id="live"><span class="pulse warn"></span><span id="live-text">…</span></div>
+  </div></div>
 
-  <section class="card" id="notif-card">
-    <h2>🔔 Notifications</h2>
-    <div id="notif-state"></div>
-    <div id="ios-install" class="notice hidden">
-      <strong>Sur iPhone, une étape avant d'activer :</strong>
-      <ol class="steps">
-        <li>Ouvrez cette page dans <strong>Safari</strong>.</li>
-        <li>Touchez le bouton <strong>Partager</strong> (carré avec une flèche).</li>
-        <li>Choisissez <strong>« Sur l'écran d'accueil »</strong>, puis <strong>Ajouter</strong>.</li>
-        <li>Ouvrez l'application depuis l'écran d'accueil et revenez ici.</li>
-      </ol>
-      <small>iOS 16.4 ou plus récent est nécessaire.</small>
-    </div>
-    <div id="access-field" class="field hidden">
-      <input type="password" id="access-code" placeholder="Code d'accès" autocomplete="off">
-      <small>Ce serveur est protégé par un code d'accès.</small>
-    </div>
-    <details id="prefs">
-      <summary>Préférences d'alerte (facultatif)</summary>
-      <fieldset>
-        <legend>Sites surveillés</legend>
-        <label class="chk"><input type="checkbox" name="sources" value="immobilier.pf" checked> immobilier.pf</label>
-        <label class="chk"><input type="checkbox" name="sources" value="petitesannonces.pf" checked> petitesannonces.pf</label>
-      </fieldset>
-      <fieldset>
-        <legend>Type d'annonce</legend>
-        <label class="chk"><input type="checkbox" name="kinds" value="vente" checked> Vente</label>
-        <label class="chk"><input type="checkbox" name="kinds" value="location" checked> Location</label>
-        <label class="chk"><input type="checkbox" name="kinds" value="autre" checked> Autre (saisonnier, colocation, terrain nu…)</label>
-      </fieldset>
-      <div class="field">
-        <input type="number" id="max-price" inputmode="numeric" placeholder="Prix maximum (XPF), vide = sans limite">
+  <main class="wrap">
+    <!-- Annonces -->
+    <section class="view active" id="view-ads">
+      <div class="search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input type="search" id="q" placeholder="Rechercher (commune, F3, piscine…)"></div>
+      <div class="chips" id="filters">
+        <button class="chip active" data-f="all">Tout</button>
+        <button class="chip" data-f="new">Nouveautés</button>
+        <button class="chip" data-f="vente">Vente</button>
+        <button class="chip" data-f="location">Location</button>
+        <button class="chip" data-f="immobilier.pf">immobilier.pf</button>
+        <button class="chip" data-f="petitesannonces.pf">petitesannonces.pf</button>
       </div>
-      <div class="field">
-        <input type="text" id="keywords" placeholder="Mots-clés, séparés par des virgules (ex : punaauia, f3, piscine)">
-        <small>Si renseigné, seules les annonces contenant au moins un mot-clé déclenchent une alerte.</small>
+      <div class="section-head"><h2>Dernières annonces</h2><span id="ads-count"></span></div>
+      <div class="list skeleton" id="list"><a class="ad"><div class="cover"></div><div class="body"><div class="title">&nbsp;</div></div></a><a class="ad"><div class="cover"></div><div class="body"><div class="title">&nbsp;</div></div></a></div>
+    </section>
+
+    <!-- Alertes -->
+    <section class="view" id="view-alerts">
+      <div class="card">
+        <div class="hero">
+          <div class="ring off" id="ring">🔔</div>
+          <h2 id="notif-title">Notifications</h2>
+          <p id="notif-text">Chargement…</p>
+        </div>
+        <ol class="steps hidden" id="ios-install">
+          <li><div><b>Ouvrez cette page dans Safari</b><br><span>Les notifications ne fonctionnent qu'avec une application installée.</span></div></li>
+          <li><div><b>Touchez Partager</b><br><span>Le carré avec une flèche vers le haut, en bas de l'écran.</span></div></li>
+          <li><div><b>« Sur l'écran d'accueil » puis Ajouter</b><br><span>iOS 16.4 ou plus récent est nécessaire.</span></div></li>
+          <li><div><b>Ouvrez l'application depuis l'écran d'accueil</b><br><span>Puis revenez ici pour activer les alertes.</span></div></li>
+        </ol>
+        <div class="field hidden" id="access-field"><label>Code d'accès</label><input type="password" id="access-code" autocomplete="off" placeholder="Demandez-le au propriétaire du serveur"></div>
+        <div style="margin-top:16px"><button class="btn btn-primary" id="btn-enable">Activer les alertes</button></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="btn-test" disabled>Tester</button>
+          <button class="btn btn-danger" id="btn-disable" disabled>Désactiver</button>
+        </div>
       </div>
-    </details>
-    <button class="btn-primary" id="btn-enable">Activer les notifications</button>
-    <div class="btn-row">
-      <button class="btn-secondary" id="btn-save" disabled>Enregistrer les préférences</button>
-      <button class="btn-secondary" id="btn-test" disabled>Notification de test</button>
-      <button class="btn-secondary" id="btn-disable" disabled>Désactiver</button>
-    </div>
-    <div id="msg"></div>
-  </section>
 
-  <section class="card">
-    <h2>📡 Surveillance</h2>
-    <div class="status" id="status">Chargement…</div>
-    <div class="btn-row">
-      <button class="btn-secondary" id="btn-refresh">Actualiser</button>
-      <button class="btn-secondary" id="btn-check">Vérifier maintenant</button>
-    </div>
-  </section>
+      <div class="card" id="prefs-card">
+        <h2>Ce qui vous intéresse</h2>
+        <p class="sub">Par défaut, toutes les nouvelles annonces vous sont envoyées. Affinez si vous le souhaitez.</p>
+        <div class="field"><label>Sites</label><div class="toggles">
+          <label class="toggle"><input type="checkbox" name="sources" value="immobilier.pf" checked><span class="tick">✓</span>immobilier.pf</label>
+          <label class="toggle"><input type="checkbox" name="sources" value="petitesannonces.pf" checked><span class="tick">✓</span>petitesannonces.pf</label>
+        </div></div>
+        <div class="field"><label>Type</label><div class="toggles">
+          <label class="toggle"><input type="checkbox" name="kinds" value="vente" checked><span class="tick">✓</span>Vente</label>
+          <label class="toggle"><input type="checkbox" name="kinds" value="location" checked><span class="tick">✓</span>Location</label>
+          <label class="toggle"><input type="checkbox" name="kinds" value="autre" checked><span class="tick">✓</span>Autre</label>
+        </div></div>
+        <div class="field"><label>Prix maximum (XPF)</label><input type="number" id="max-price" inputmode="numeric" placeholder="Sans limite"></div>
+        <div class="field"><label>Mots-clés</label><input type="text" id="keywords" placeholder="punaauia, f3, piscine"><small>Séparés par des virgules. Si renseignés, seules les annonces qui en contiennent au moins un vous sont envoyées.</small></div>
+        <div style="margin-top:16px"><button class="btn btn-ghost" id="btn-save" style="width:100%" disabled>Enregistrer les préférences</button></div>
+      </div>
+    </section>
 
-  <section>
-    <div class="filters" id="filters">
-      <button data-f="all" class="active">Tout</button>
-      <button data-f="immobilier.pf">immobilier.pf</button>
-      <button data-f="petitesannonces.pf">petitesannonces.pf</button>
-      <button data-f="vente">Vente</button>
-      <button data-f="location">Location</button>
-    </div>
-    <div class="list" id="list"><div class="empty">Chargement des annonces…</div></div>
-  </section>
+    <!-- État -->
+    <section class="view" id="view-status">
+      <div class="stats">
+        <div class="stat"><b id="st-total">–</b><span>annonces</span></div>
+        <div class="stat"><b id="st-today">–</b><span>aujourd'hui</span></div>
+        <div class="stat"><b id="st-devices">–</b><span>appareils</span></div>
+      </div>
+      <div class="card">
+        <h2>Surveillance</h2>
+        <p class="sub" id="st-interval">…</p>
+        <div id="sources"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost" id="btn-refresh">Actualiser</button>
+          <button class="btn btn-ghost" id="btn-check">Vérifier maintenant</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Comment ça marche</h2>
+        <p class="sub" style="margin:0">Le serveur interroge les deux sites en continu. Chaque annonce jamais vue est enregistrée ici et envoyée en notification aux appareils abonnés, selon leurs préférences. Un appui sur la notification ouvre directement l'annonce.</p>
+      </div>
+      <footer>Les annonces appartiennent à leurs sites respectifs. Cette application ne fait que vous prévenir.</footer>
+    </section>
+  </main>
 
-  <footer>Les annonces appartiennent à leurs sites respectifs. Cette application ne fait que vous prévenir.</footer>
-</div>
+  <nav class="tabbar">
+    <button class="active" data-v="ads"><svg viewBox="0 0 24 24"><path d="M3 11.5 12 4l9 7.5"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg>Annonces<span class="count hidden" id="tab-count"></span></button>
+    <button data-v="alerts"><svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/></svg>Alertes</button>
+    <button data-v="status"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M4 15l4-5 4 3 4-6 4 4"/></svg>État</button>
+  </nav>
+  <div class="toast" id="toast"></div>
 
 <script>
 (() => {
   const $ = (s) => document.querySelector(s);
-  const state = { config: null, reg: null, sub: null, listings: [], filter: 'all', lastVisit: Number(localStorage.getItem('lastVisit') || 0) };
+  const state = { config: null, reg: null, sub: null, listings: [], filter: 'all', query: '', lastVisit: Number(localStorage.getItem('lastVisit') || Date.now()), newCount: 0 };
   const ua = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   const pushSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  let toastTimer;
 
-  function msg(text, cls = '') {
-    const el = $('#msg');
-    el.innerHTML = text ? `<div class="notice ${cls}">${text}</div>` : '';
+  function toast(text, cls = '') {
+    const el = $('#toast'); el.textContent = text; el.className = `toast show ${cls}`;
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
   }
   function urlB64ToUint8Array(b64) {
     const padding = '='.repeat((4 - (b64.length % 4)) % 4);
-    const base64 = (b64 + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const raw = atob(base64);
+    const raw = atob((b64 + padding).replace(/-/g, '+').replace(/_/g, '/'));
     return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
   }
-  function readPrefs() {
-    const vals = (name) => [...document.querySelectorAll(`input[name=${name}]:checked`)].map((i) => i.value);
-    return {
-      sources: vals('sources'),
-      kinds: vals('kinds'),
-      maxPrice: Number($('#max-price').value) || null,
-      keywords: $('#keywords').value.split(',').map((k) => k.trim()).filter(Boolean),
-    };
-  }
-  function writePrefs(p) {
-    for (const i of document.querySelectorAll('input[name=sources]')) i.checked = p.sources.includes(i.value);
-    for (const i of document.querySelectorAll('input[name=kinds]')) i.checked = p.kinds.includes(i.value);
-    $('#max-price').value = p.maxPrice || '';
-    $('#keywords').value = (p.keywords || []).join(', ');
-  }
-  function headers() {
-    const h = { 'Content-Type': 'application/json' };
-    const code = $('#access-code').value;
-    if (code) h['x-access-code'] = code;
-    return h;
-  }
-  async function api(path, body) {
-    const res = await fetch(path, body ? { method: 'POST', headers: headers(), body: JSON.stringify(body) } : {});
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
-    return data;
-  }
-
-  function renderNotifState() {
-    const el = $('#notif-state');
-    const enable = $('#btn-enable');
-    $('#ios-install').classList.toggle('hidden', !(isIOS && !isStandalone));
-    if (!pushSupported || (isIOS && !isStandalone)) {
-      el.innerHTML = `<p class="status"><span class="dot warn"></span>${isIOS ? 'Installez d\'abord l\'application sur l\'écran d\'accueil.' : 'Ce navigateur ne prend pas en charge les notifications push.'}</p>`;
-      enable.disabled = true;
-      return;
-    }
-    if (Notification.permission === 'denied') {
-      el.innerHTML = '<p class="status"><span class="dot err"></span>Notifications refusées. Réactivez-les dans Réglages › Notifications › Veille immo.</p>';
-      enable.disabled = true;
-      return;
-    }
-    const on = Boolean(state.sub);
-    el.innerHTML = on
-      ? '<p class="status"><span class="dot ok"></span>Notifications activées sur cet appareil.</p>'
-      : '<p class="status"><span class="dot"></span>Notifications non activées.</p>';
-    enable.disabled = on;
-    enable.textContent = on ? 'Notifications activées ✓' : 'Activer les notifications';
-    $('#btn-save').disabled = !on;
-    $('#btn-test').disabled = !on;
-    $('#btn-disable').disabled = !on;
-  }
-
-  async function subscribe() {
-    msg('');
-    try {
-      const perm = await Notification.requestPermission();
-      if (perm !== 'granted') { renderNotifState(); return msg('Permission refusée.', 'err'); }
-      const sub = await state.reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlB64ToUint8Array(state.config.vapidPublicKey),
-      });
-      const r = await api('/api/subscribe', { subscription: sub.toJSON(), prefs: readPrefs() });
-      state.sub = sub;
-      writePrefs(r.prefs);
-      renderNotifState();
-      msg('C\'est prêt ! Vous recevrez une notification à chaque nouvelle annonce.', 'ok');
-    } catch (err) {
-      msg(`Activation impossible : ${err.message}`, 'err');
-    }
-  }
-  async function savePrefs() {
-    try {
-      const r = await api('/api/subscribe', { subscription: state.sub.toJSON(), prefs: readPrefs() });
-      writePrefs(r.prefs);
-      msg('Préférences enregistrées.', 'ok');
-    } catch (err) { msg(err.message, 'err'); }
-  }
-  async function unsubscribe() {
-    try {
-      await api('/api/unsubscribe', { endpoint: state.sub.endpoint });
-      await state.sub.unsubscribe();
-      state.sub = null;
-      renderNotifState();
-      msg('Notifications désactivées.');
-    } catch (err) { msg(err.message, 'err'); }
-  }
-  async function testNotif() {
-    try {
-      await api('/api/test-notification', { subscription: state.sub.toJSON() });
-      msg('Notification de test envoyée.', 'ok');
-    } catch (err) { msg(err.message, 'err'); }
-  }
-
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   function timeAgo(iso) {
     if (!iso) return '';
     const d = (Date.now() - new Date(iso).getTime()) / 1000;
@@ -266,46 +264,132 @@
     if (d < 86400) return `il y a ${Math.floor(d / 3600)} h`;
     return `il y a ${Math.floor(d / 86400)} j`;
   }
-  function esc(s) { return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+  function readPrefs() {
+    const vals = (n) => [...document.querySelectorAll(`input[name=${n}]:checked`)].map((i) => i.value);
+    return { sources: vals('sources'), kinds: vals('kinds'), maxPrice: Number($('#max-price').value) || null, keywords: $('#keywords').value.split(',').map((k) => k.trim()).filter(Boolean) };
+  }
+  function writePrefs(p) {
+    for (const i of document.querySelectorAll('input[name=sources]')) i.checked = p.sources.includes(i.value);
+    for (const i of document.querySelectorAll('input[name=kinds]')) i.checked = p.kinds.includes(i.value);
+    $('#max-price').value = p.maxPrice || ''; $('#keywords').value = (p.keywords || []).join(', ');
+  }
+  function headers() { const h = { 'Content-Type': 'application/json' }; const c = $('#access-code').value; if (c) h['x-access-code'] = c; return h; }
+  async function api(path, body) {
+    const res = await fetch(path, body ? { method: 'POST', headers: headers(), body: JSON.stringify(body) } : { cache: 'no-store' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+    return data;
+  }
 
+  /* ---------- Notifications ---------- */
+  function renderNotif() {
+    const ring = $('#ring'), title = $('#notif-title'), text = $('#notif-text'), enable = $('#btn-enable');
+    const needInstall = isIOS && !isStandalone;
+    $('#ios-install').classList.toggle('hidden', !needInstall);
+    const on = Boolean(state.sub);
+    $('#btn-save').disabled = !on; $('#btn-test').disabled = !on; $('#btn-disable').disabled = !on;
+    if (needInstall) { ring.className = 'ring off'; ring.textContent = '📲'; title.textContent = 'Une étape avant d\'activer'; text.textContent = 'Installez l\'application sur votre écran d\'accueil en suivant les étapes ci-dessous.'; enable.disabled = true; return; }
+    if (!pushSupported) { ring.className = 'ring err'; ring.textContent = '🚫'; title.textContent = 'Non pris en charge'; text.textContent = 'Ce navigateur ne gère pas les notifications push. Sur iPhone, utilisez Safari.'; enable.disabled = true; return; }
+    if (Notification.permission === 'denied') { ring.className = 'ring err'; ring.textContent = '🔕'; title.textContent = 'Notifications bloquées'; text.textContent = 'Réactivez-les dans Réglages › Notifications › Veille immo.'; enable.disabled = true; return; }
+    if (on) { ring.className = 'ring on'; ring.textContent = '🔔'; title.textContent = 'Alertes activées'; text.textContent = 'Vous serez prévenu dès qu\'une nouvelle annonce paraît.'; enable.disabled = true; enable.textContent = 'Alertes activées ✓'; }
+    else { ring.className = 'ring off'; ring.textContent = '🔔'; title.textContent = 'Alertes désactivées'; text.textContent = 'Activez-les pour être le premier informé des nouvelles annonces.'; enable.disabled = false; enable.textContent = 'Activer les alertes'; }
+  }
+  async function subscribe() {
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { renderNotif(); return toast('Permission refusée.', 'err'); }
+      const sub = await state.reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(state.config.vapidPublicKey) });
+      const r = await api('/api/subscribe', { subscription: sub.toJSON(), prefs: readPrefs() });
+      state.sub = sub; writePrefs(r.prefs); renderNotif();
+      toast('C\'est prêt ! Vous recevrez une alerte à chaque nouvelle annonce.', 'ok');
+    } catch (err) { toast(`Activation impossible : ${err.message}`, 'err'); }
+  }
+  async function savePrefs() {
+    try { const r = await api('/api/subscribe', { subscription: state.sub.toJSON(), prefs: readPrefs() }); writePrefs(r.prefs); toast('Préférences enregistrées.', 'ok'); }
+    catch (err) { toast(err.message, 'err'); }
+  }
+  async function unsubscribe() {
+    try { await api('/api/unsubscribe', { endpoint: state.sub.endpoint }); await state.sub.unsubscribe(); state.sub = null; renderNotif(); toast('Alertes désactivées.'); }
+    catch (err) { toast(err.message, 'err'); }
+  }
+  async function testNotif() {
+    try { await api('/api/test-notification', { subscription: state.sub.toJSON() }); toast('Notification de test envoyée.', 'ok'); }
+    catch (err) { toast(err.message, 'err'); }
+  }
+
+  /* ---------- Annonces ---------- */
+  function isNew(l) { return l.seenAt && new Date(l.seenAt).getTime() > state.lastVisit; }
   function renderList() {
-    const list = $('#list');
+    const q = state.query.trim().toLowerCase();
     const f = state.filter;
-    const items = state.listings.filter((l) => f === 'all' || l.source === f || l.kind === f);
-    if (!items.length) { list.innerHTML = '<div class="empty">Aucune annonce pour le moment. La liste se remplit au fil des nouvelles publications.</div>'; return; }
+    const items = state.listings.filter((l) => {
+      if (f === 'new' && !isNew(l)) return false;
+      if (f !== 'all' && f !== 'new' && l.source !== f && l.kind !== f) return false;
+      if (q && !`${l.title} ${l.description} ${l.location} ${l.category} ${l.agency}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+    const list = $('#list'); list.classList.remove('skeleton');
+    $('#ads-count').textContent = items.length ? `${items.length} annonce${items.length > 1 ? 's' : ''}` : '';
+    if (!items.length) { list.innerHTML = `<div class="empty"><div class="big">🌴</div>${state.listings.length ? 'Aucune annonce ne correspond.' : 'Aucune annonce pour le moment.<br>La liste se remplit au fil des publications.'}</div>`; return; }
     list.innerHTML = items.map((l) => {
-      const isNew = l.seenAt && new Date(l.seenAt).getTime() > state.lastVisit;
       const src = l.source === 'immobilier.pf' ? 'immo' : 'pa';
-      const meta = [l.category, l.location, l.area ? `${l.area} m²` : '', l.agency].filter(Boolean).join(' · ');
-      return `<a class="item ${isNew ? 'new' : ''}" href="${esc(l.url)}" target="_blank" rel="noopener">
-        ${l.image ? `<img class="thumb" src="${esc(l.image)}" alt="" loading="lazy">` : `<div class="thumb">${l.kind === 'location' ? '🔑' : '🏠'}</div>`}
+      const meta = [l.location, l.area ? `${l.area} m²` : '', l.agency].filter(Boolean).map((m) => `<span>${esc(m)}</span>`).join('');
+      return `<a class="ad ${isNew(l) ? 'new' : ''}" href="${esc(l.url)}" target="_blank" rel="noopener">
+        <div class="cover">${l.image ? `<img src="${esc(l.image)}" alt="" loading="lazy" onerror="this.remove()">` : `<div class="ph">${l.kind === 'location' ? '🔑' : l.category.toLowerCase().includes('terrain') ? '🌿' : '🏠'}</div>`}
+          <div class="pills"><span class="pill ${src}">${esc(l.source)}</span>${isNew(l) ? '<span class="pill new">Nouveau</span>' : ''}</div></div>
         <div class="body">
-          <div><span class="badge ${src}">${esc(l.source)}</span> ${isNew ? '<span class="badge new">Nouveau</span>' : ''} <span class="meta">${timeAgo(l.seenAt || l.publishedAt)}</span></div>
+          <div class="row"><div class="price">${esc(l.priceLabel || 'Prix non précisé')}</div><div class="when">${timeAgo(l.seenAt || l.publishedAt)}</div></div>
           <div class="title">${esc(l.title)}</div>
-          ${meta ? `<div class="meta">${esc(meta)}</div>` : ''}
-          <div class="price">${esc(l.priceLabel || '')}</div>
+          ${meta ? `<div class="meta">${meta}</div>` : ''}
+          ${l.description ? `<div class="desc">${esc(l.description)}</div>` : ''}
         </div></a>`;
     }).join('');
   }
   function renderStatus(d) {
-    const parts = [`<span><span class="dot ${d.lastCheck ? 'ok' : 'warn'}"></span>Dernière vérification : ${d.lastCheck ? timeAgo(d.lastCheck) : 'jamais'}</span>`];
-    for (const [name, s] of Object.entries(d.sources || {})) {
-      parts.push(`<span title="${esc(s.error || '')}"><span class="dot ${s.ok ? 'ok' : 'err'}"></span>${esc(name)}${s.ok ? '' : ' (erreur)'}</span>`);
-    }
-    parts.push(`<span>Toutes les ${state.config?.checkIntervalMin ?? '?'} min · ${d.subscribers} appareil(s) abonné(s)</span>`);
-    $('#status').innerHTML = parts.join('');
+    const sources = Object.entries(d.sources || {});
+    const allOk = sources.length && sources.every(([, s]) => s.ok);
+    $('#live').querySelector('.pulse').className = `pulse ${!d.lastCheck ? 'warn' : allOk ? '' : 'err'}`;
+    $('#live-text').textContent = d.lastCheck ? (allOk ? 'En veille' : 'Problème') : 'Démarrage';
+    const today = new Date().toDateString();
+    $('#st-total').textContent = d.listings.length;
+    $('#st-today').textContent = d.listings.filter((l) => new Date(l.seenAt || l.publishedAt).toDateString() === today).length;
+    $('#st-devices').textContent = d.subscribers;
+    $('#st-interval').textContent = `Vérification toutes les ${state.config?.checkIntervalMin ?? '?'} minutes · dernière : ${d.lastCheck ? timeAgo(d.lastCheck) : 'jamais'}`;
+    $('#sources').innerHTML = sources.map(([name, s]) => `<div class="srow"><span class="dot ${s.ok ? 'ok' : 'err'}"></span><div class="n">${esc(name)}<small>${s.ok ? `${s.count} annonces lues` : esc(s.error || 'erreur')}</small></div><div class="v">${timeAgo(s.checkedAt)}</div></div>`).join('') || '<p class="sub">Première vérification en cours…</p>';
+    state.newCount = d.listings.filter(isNew).length;
+    const tc = $('#tab-count'); tc.textContent = state.newCount; tc.classList.toggle('hidden', !state.newCount);
   }
   async function loadListings() {
-    try {
-      const d = await api('/api/listings?limit=150');
-      state.listings = d.listings;
-      renderStatus(d);
-      renderList();
-    } catch (err) { $('#status').textContent = `Serveur injoignable : ${err.message}`; }
+    try { const d = await api('/api/listings?limit=200'); state.listings = d.listings; renderStatus(d); renderList(); }
+    catch (err) { $('#live-text').textContent = 'Hors ligne'; $('#live').querySelector('.pulse').className = 'pulse err'; toast(`Serveur injoignable : ${err.message}`, 'err'); }
   }
 
+  /* ---------- Navigation ---------- */
+  function showView(v) {
+    for (const s of document.querySelectorAll('.view')) s.classList.toggle('active', s.id === `view-${v}`);
+    for (const b of document.querySelectorAll('.tabbar button')) b.classList.toggle('active', b.dataset.v === v);
+    window.scrollTo({ top: 0 });
+    if (v === 'ads') { localStorage.setItem('lastVisit', String(Date.now())); }
+  }
+  document.querySelector('.tabbar').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showView(b.dataset.v); });
+  $('#filters').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; state.filter = b.dataset.f; for (const x of $('#filters').children) x.classList.toggle('active', x === b); renderList(); });
+  $('#q').addEventListener('input', (e) => { state.query = e.target.value; renderList(); });
+  $('#btn-enable').addEventListener('click', subscribe);
+  $('#btn-save').addEventListener('click', savePrefs);
+  $('#btn-disable').addEventListener('click', unsubscribe);
+  $('#btn-test').addEventListener('click', testNotif);
+  $('#btn-refresh').addEventListener('click', async () => { await loadListings(); toast('Liste actualisée.'); });
+  $('#btn-check').addEventListener('click', async () => {
+    const b = $('#btn-check'); b.disabled = true; b.textContent = 'Vérification…';
+    try { const r = await api('/api/check-now', {}); toast(r.fresh ? `${r.fresh} nouvelle(s) annonce(s) détectée(s).` : 'Rien de nouveau pour l\'instant.', 'ok'); await loadListings(); }
+    catch (err) { toast(err.message, 'err'); }
+    finally { b.disabled = false; b.textContent = 'Vérifier maintenant'; }
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadListings(); });
+  setInterval(() => { if (!document.hidden) loadListings(); }, 60000);
+
   async function init() {
-    try { state.config = await api('/api/config'); } catch (err) { msg(`Impossible de joindre le serveur : ${err.message}`, 'err'); }
+    try { state.config = await api('/api/config'); } catch (err) { toast(`Impossible de joindre le serveur : ${err.message}`, 'err'); }
     if (state.config?.requiresAccessCode) {
       $('#access-field').classList.remove('hidden');
       $('#access-code').value = localStorage.getItem('accessCode') || '';
@@ -317,34 +401,16 @@
         state.sub = await state.reg.pushManager.getSubscription();
         if (state.sub) {
           const r = await api(`/api/prefs?endpoint=${encodeURIComponent(state.sub.endpoint)}`);
-          if (r.subscribed) writePrefs(r.prefs);
-          else state.sub = null; // le serveur ne connaît plus cet abonnement
+          if (r.subscribed) writePrefs(r.prefs); else state.sub = null;
         }
-      } catch (err) { msg(`Service worker : ${err.message}`, 'err'); }
+      } catch (err) { toast(`Service worker : ${err.message}`, 'err'); }
     }
-    renderNotifState();
+    renderNotif();
     await loadListings();
-    localStorage.setItem('lastVisit', String(Date.now()));
+    // Première visite ou alertes non activées : on ouvre directement l'onglet Alertes
+    if (!state.sub && !localStorage.getItem('seenAlerts')) { showView('alerts'); localStorage.setItem('seenAlerts', '1'); }
+    else localStorage.setItem('lastVisit', String(Date.now()));
   }
-
-  $('#btn-enable').addEventListener('click', subscribe);
-  $('#btn-save').addEventListener('click', savePrefs);
-  $('#btn-disable').addEventListener('click', unsubscribe);
-  $('#btn-test').addEventListener('click', testNotif);
-  $('#btn-refresh').addEventListener('click', loadListings);
-  $('#btn-check').addEventListener('click', async () => {
-    const b = $('#btn-check'); b.disabled = true; b.textContent = 'Vérification…';
-    try { const r = await api('/api/check-now', {}); msg(r.fresh ? `${r.fresh} nouvelle(s) annonce(s) détectée(s).` : 'Rien de nouveau pour l\'instant.', 'ok'); await loadListings(); }
-    catch (err) { msg(err.message, 'err'); }
-    finally { b.disabled = false; b.textContent = 'Vérifier maintenant'; }
-  });
-  $('#filters').addEventListener('click', (e) => {
-    const b = e.target.closest('button'); if (!b) return;
-    state.filter = b.dataset.f;
-    for (const x of $('#filters').children) x.classList.toggle('active', x === b);
-    renderList();
-  });
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadListings(); });
   init();
 })();
 </script>

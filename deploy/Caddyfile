@@ -1,0 +1,5 @@
+# Reverse proxy HTTPS automatique (certificat Let's Encrypt) devant l'application.
+{$DOMAIN} {
+    encode gzip
+    reverse_proxy app:3000
+}
