@@ -101,7 +101,7 @@
     .srow { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
     .srow:first-of-type { border-top: 0; }
     .srow .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--faint); flex: none; }
-    .srow .dot.ok { background: var(--ok); } .srow .dot.err { background: var(--err); }
+    .srow .dot.ok { background: var(--ok); } .srow .dot.err { background: var(--err); } .srow .dot.warn { background: var(--warn); }
     .srow .n { flex: 1; } .srow .n small { display: block; color: var(--muted); font-size: .8rem; }
     .srow .v { color: var(--muted); font-size: .85rem; text-align: right; }
 
@@ -347,7 +347,9 @@
   }
   function renderStatus(d) {
     const sources = Object.entries(d.sources || {});
-    const allOk = sources.length && sources.every(([, s]) => s.ok);
+    const STALE_MS = 30 * 60 * 1000;
+    const health = (s) => s.ok ? 'ok' : (s.lastOkAt && Date.now() - new Date(s.lastOkAt).getTime() < STALE_MS ? 'warn' : 'err');
+    const allOk = sources.length && sources.every(([, s]) => health(s) !== 'err');
     $('#live').querySelector('.pulse').className = `pulse ${!d.lastCheck ? 'warn' : allOk ? '' : 'err'}`;
     $('#live-text').textContent = d.lastCheck ? (allOk ? 'En veille' : 'Problème') : 'Démarrage';
     const today = new Date().toDateString();
@@ -355,7 +357,11 @@
     $('#st-today').textContent = d.listings.filter((l) => new Date(l.seenAt || l.publishedAt).toDateString() === today).length;
     $('#st-devices').textContent = d.subscribers;
     $('#st-interval').textContent = `Vérification toutes les ${state.config?.checkIntervalMin ?? '?'} minutes · dernière : ${d.lastCheck ? timeAgo(d.lastCheck) : 'jamais'}`;
-    $('#sources').innerHTML = sources.map(([name, s]) => `<div class="srow"><span class="dot ${s.ok ? 'ok' : 'err'}"></span><div class="n">${esc(name)}<small>${s.ok ? `${s.count} annonces lues` : esc(s.error || 'erreur')}</small></div><div class="v">${timeAgo(s.checkedAt)}</div></div>`).join('') || '<p class="sub">Première vérification en cours…</p>';
+    $('#sources').innerHTML = sources.map(([name, s]) => {
+      const h = health(s);
+      const detail = s.ok ? `${s.count} annonces lues` : h === 'warn' ? `échec passager, dernière réussite ${timeAgo(s.lastOkAt)}` : esc(s.error || 'erreur');
+      return `<div class="srow"><span class="dot ${h}"></span><div class="n">${esc(name)}<small>${detail}</small></div><div class="v">${timeAgo(s.checkedAt)}</div></div>`;
+    }).join('') || '<p class="sub">Première vérification en cours…</p>';
     state.newCount = d.listings.filter(isNew).length;
     const tc = $('#tab-count'); tc.textContent = state.newCount; tc.classList.toggle('hidden', !state.newCount);
   }

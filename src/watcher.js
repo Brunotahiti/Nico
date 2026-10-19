@@ -39,10 +39,12 @@ export class Watcher {
     const fresh = [];
     try {
       for (const mod of SOURCES) {
-        const status = { checkedAt: new Date().toISOString(), ok: true, error: null, count: 0 };
+        const previous = this.store.state.sourcesStatus[mod.SOURCE] || {};
+        const status = { checkedAt: new Date().toISOString(), ok: true, error: null, count: 0, lastOkAt: previous.lastOkAt || null };
         try {
           const items = await mod.fetchLatest();
           status.count = items.length;
+          status.lastOkAt = status.checkedAt;
           for (const item of items) {
             if (this.store.hasSeen(item.source, item.sourceId)) continue;
             this.store.markSeen(item.source, item.sourceId);

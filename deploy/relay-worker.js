@@ -28,14 +28,24 @@ export default {
     if (!allowed.some((d) => t.hostname === d || t.hostname.endsWith(`.${d}`))) {
       return new Response('Hôte non autorisé', { status: 403 });
     }
-    const upstream = await fetch(t.toString(), {
-      headers: {
-        'User-Agent': UA,
-        Accept: request.headers.get('accept') || '*/*',
-        'Accept-Language': 'fr-FR,fr;q=0.9',
-      },
-      cf: { cacheTtl: 0 },
-    });
+    // Certains hébergeurs coupent une partie des connexions venant de Cloudflare : on réessaie.
+    let upstream;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      try {
+        upstream = await fetch(t.toString(), {
+          headers: {
+            'User-Agent': UA,
+            Accept: request.headers.get('accept') || '*/*',
+            'Accept-Language': 'fr-FR,fr;q=0.9',
+          },
+          cf: { cacheTtl: 0, cacheEverything: false },
+        });
+        if (upstream.status < 500) break;
+      } catch (err) {
+        upstream = new Response(`Relais : ${err.message}`, { status: 502 });
+      }
+      await new Promise((r) => setTimeout(r, 1500 * (attempt + 1)));
+    }
     const headers = new Headers({
       'content-type': upstream.headers.get('content-type') || 'application/octet-stream',
       'cache-control': 'no-store',

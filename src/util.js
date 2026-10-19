@@ -29,9 +29,12 @@ export function sleep(ms) {
 export async function fetchWithRetry(url, options = {}, { retries = 3, timeoutMs = 30000 } = {}) {
   let lastError;
   const relayed = relayFor(url);
-  const target = relayed || url;
   const extra = relayed && RELAY_KEY ? { 'x-relay-key': RELAY_KEY } : {};
+  // Via le relais, l'hébergeur distant coupe une partie des connexions : on insiste
+  // davantage, et on change l'URL à chaque essai pour contourner tout cache intermédiaire.
+  if (relayed) retries = Math.max(retries, 6);
   for (let attempt = 0; attempt <= retries; attempt++) {
+    const target = relayed ? `${relayed}%26_%3D${Date.now()}${attempt}` : url;
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
@@ -44,7 +47,7 @@ export async function fetchWithRetry(url, options = {}, { retries = 3, timeoutMs
       return res;
     } catch (err) {
       lastError = err;
-      if (attempt < retries) await sleep(1500 * (attempt + 1));
+      if (attempt < retries) await sleep((relayed ? 2500 : 1500) * (attempt + 1));
     } finally {
       clearTimeout(timer);
     }
