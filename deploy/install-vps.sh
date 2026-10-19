@@ -3,7 +3,7 @@
 #
 #   curl -fsSL https://raw.githubusercontent.com/Brunotahiti/Nico/claude/gallant-hopper-e2wyec/deploy/install-vps.sh | sudo -E bash
 #
-# Variables facultatives (à placer avant la commande) :
+# Variables facultatives (à placer après « sudo », ex. : | sudo ACCESS_CODE=x DOMAIN=y bash) :
 #   DOMAIN=immo.mondomaine.pf   nom de domaine pointant vers le VPS (sinon : <ip>.sslip.io, sans rien à configurer)
 #   ACCESS_CODE=monsecret       code demandé dans l'application pour s'abonner (fortement conseillé)
 #   CHECK_INTERVAL_MIN=5        fréquence de vérification des sites
