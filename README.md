@@ -100,6 +100,21 @@ Affiche les 5 dernières annonces de chaque site.
 | POST | `/api/test-notification` | Envoie une notification de test |
 | POST | `/api/check-now` | Force une vérification immédiate |
 
+## Si le serveur ne peut pas joindre petitesannonces.pf
+
+petitesannonces.pf est hébergé en Polynésie et bloque certaines plages d'adresses de datacenters (c'est le cas chez Hostinger). L'onglet « État » de l'application affiche alors le site en erreur. Solution : un relais gratuit sur Cloudflare Workers, par lequel le serveur va chercher le flux.
+
+1. Créez un compte sur https://dash.cloudflare.com (gratuit), puis **Workers & Pages → Create → Start with Hello World → Deploy**.
+2. **Edit code**, remplacez tout le contenu par le fichier `deploy/relay-worker.js`, puis **Deploy**.
+3. **Settings → Variables and Secrets** : ajoutez un secret `RELAY_KEY` avec une longue chaîne de votre choix.
+4. Notez l'adresse du worker (`https://xxx.yyy.workers.dev`) et, sur le serveur :
+
+```bash
+FETCH_RELAY_URL=https://xxx.yyy.workers.dev FETCH_RELAY_KEY=<la même chaîne> sudo -E bash /opt/veille-immo/deploy/install-vps.sh
+```
+
+Seules les requêtes vers petitesannonces.pf passent par le relais (variable `FETCH_RELAY_HOSTS`).
+
 ## Limites à connaître
 
 - Les deux sites peuvent changer leur structure ou leur API : la page « Surveillance » de l'application signale un site en erreur.

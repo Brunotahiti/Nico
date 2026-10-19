@@ -69,6 +69,8 @@ envset DOMAIN "$DOMAIN"
 [ -n "$(envget CHECK_INTERVAL_MIN)" ] || envset CHECK_INTERVAL_MIN "$CHECK_INTERVAL_MIN"
 [ -n "$(envget VAPID_SUBJECT)" ] || envset VAPID_SUBJECT "mailto:${VAPID_SUBJECT:-veille-immo@$DOMAIN}"
 if [ -n "${ACCESS_CODE:-}" ]; then envset ACCESS_CODE "$ACCESS_CODE"; else [ -n "$(envget ACCESS_CODE)" ] || envset ACCESS_CODE ""; fi
+[ -n "${FETCH_RELAY_URL:-}" ] && envset FETCH_RELAY_URL "$FETCH_RELAY_URL"
+[ -n "${FETCH_RELAY_KEY:-}" ] && envset FETCH_RELAY_KEY "$FETCH_RELAY_KEY"
 
 # 5. Traefik déjà présent ?
 TRAEFIK="$(docker ps --format '{{.Names}} {{.Image}}' | awk 'tolower($2) ~ /traefik/ {print $1; exit}')"

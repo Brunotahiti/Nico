@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { Store, normalizePrefs, DEFAULT_PREFS } from './store.js';
 import { Notifier, loadVapidKeys } from './notifier.js';
 import { Watcher } from './watcher.js';
+import { relayEnabled } from './util.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, '..');
@@ -38,6 +39,7 @@ app.get('/api/config', (req, res) => {
     vapidPublicKey: vapid.publicKey,
     requiresAccessCode: Boolean(ACCESS_CODE),
     checkIntervalMin: CHECK_INTERVAL_MIN,
+    relayEnabled,
     defaultPrefs: DEFAULT_PREFS,
   });
 });
