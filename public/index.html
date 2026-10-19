@@ -339,7 +339,7 @@
   }
   function renderStatus(d) {
     const sources = Object.entries(d.sources || {});
-    const STALE_MS = 30 * 60 * 1000;
+    const STALE_MS = 60 * 60 * 1000; // rouge seulement après 1 h sans aucune réussite
     const health = (s) => s.ok ? 'ok' : (s.lastOkAt && Date.now() - new Date(s.lastOkAt).getTime() < STALE_MS ? 'warn' : 'err');
     const worst = sources.map(([, s]) => health(s));
     const liveCls = !d.lastCheck ? 'warn' : worst.includes('err') ? 'err' : worst.includes('warn') ? 'warn' : 'ok';
