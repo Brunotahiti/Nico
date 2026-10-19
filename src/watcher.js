@@ -5,6 +5,7 @@ import * as immobilier from './scrapers/immobilier.js';
 import * as petitesannonces from './scrapers/petitesannonces.js';
 
 const SOURCES = [immobilier, petitesannonces];
+const MAX_ENRICH_PER_CYCLE = 20;
 
 export class Watcher {
   constructor(store, notifier, { intervalMs }) {
@@ -45,12 +46,20 @@ export class Watcher {
           const items = await mod.fetchLatest();
           status.count = items.length;
           status.lastOkAt = status.checkedAt;
+          const freshHere = [];
           for (const item of items) {
             if (this.store.hasSeen(item.source, item.sourceId)) continue;
             this.store.markSeen(item.source, item.sourceId);
             item.seenAt = new Date().toISOString();
-            fresh.push(item);
+            freshHere.push(item);
           }
+          // Détails complémentaires (particulier / pro…) pour les nouveautés seulement
+          if (mod.enrich && !firstRun) {
+            for (const item of freshHere.slice(0, MAX_ENRICH_PER_CYCLE)) {
+              try { await mod.enrich(item); } catch (err) { console.warn(`[watch] détail ${item.id} indisponible : ${err.message}`); }
+            }
+          }
+          fresh.push(...freshHere);
         } catch (err) {
           status.ok = false;
           status.error = err.message;

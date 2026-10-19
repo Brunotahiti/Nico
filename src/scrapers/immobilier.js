@@ -67,6 +67,7 @@ function normalize(bid) {
     priceLabel: bid.isPriceHidden ? 'Prix non communiqué' : bid.price?.formatedPrice || '',
     area: r.area ?? null,
     agency: r.agency?.name || '',
+    seller: r.agency ? 'pro' : 'particulier',
     description: (bid.description || '').replace(/\s+/g, ' ').trim().slice(0, 300),
     image: photo?.relativeThumbUrl ? `${BASE}/media/${photo.relativeThumbUrl}` : null,
     url: buildUrl(bid),

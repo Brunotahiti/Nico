@@ -100,6 +100,7 @@ export class Store {
 export const DEFAULT_PREFS = {
   sources: ['immobilier.pf', 'petitesannonces.pf'],
   kinds: ['vente', 'location', 'autre'],
+  sellers: ['particulier', 'pro'],
   maxPrice: null,
   keywords: [],
 };
@@ -108,6 +109,7 @@ export function normalizePrefs(prefs = {}) {
   const p = { ...DEFAULT_PREFS, ...(prefs || {}) };
   p.sources = Array.isArray(p.sources) ? p.sources.filter((s) => DEFAULT_PREFS.sources.includes(s)) : DEFAULT_PREFS.sources;
   p.kinds = Array.isArray(p.kinds) ? p.kinds.filter((k) => DEFAULT_PREFS.kinds.includes(k)) : DEFAULT_PREFS.kinds;
+  p.sellers = Array.isArray(p.sellers) ? p.sellers.filter((k) => DEFAULT_PREFS.sellers.includes(k)) : DEFAULT_PREFS.sellers;
   p.maxPrice = Number.isFinite(Number(p.maxPrice)) && Number(p.maxPrice) > 0 ? Number(p.maxPrice) : null;
   p.keywords = Array.isArray(p.keywords)
     ? p.keywords.map((k) => String(k).trim().toLowerCase()).filter(Boolean).slice(0, 20)
@@ -120,6 +122,8 @@ export function matchesPrefs(listing, prefs) {
   const p = normalizePrefs(prefs);
   if (!p.sources.includes(listing.source)) return false;
   if (!p.kinds.includes(listing.kind)) return false;
+  // Type d'annonceur inconnu (page indisponible) : on laisse passer plutôt que de rater l'annonce
+  if (listing.seller && listing.seller !== 'inconnu' && !p.sellers.includes(listing.seller)) return false;
   if (p.maxPrice && listing.price && listing.price > p.maxPrice) return false;
   if (p.keywords.length) {
     const hay = `${listing.title} ${listing.description} ${listing.location} ${listing.category}`.toLowerCase();

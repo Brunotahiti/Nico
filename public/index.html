@@ -116,6 +116,7 @@
     .ad .cover .pills { position: absolute; top: 10px; left: 10px; right: 10px; display: flex; gap: 6px; }
     .pill { font-size: .68rem; font-weight: 700; padding: 4px 9px; border-radius: 999px; color: #fff; text-transform: uppercase; letter-spacing: .04em; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
     .pill.immo { background: rgba(96, 165, 250, .85); } .pill.pa { background: rgba(192, 132, 252, .85); }
+    .pill.part { background: rgba(52, 211, 153, .9); color: #04201c; } .pill.pro { background: rgba(148, 163, 184, .8); }
     .pill.new { background: var(--new); margin-left: auto; animation: pop .4s ease; }
     @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
     .ad .body { padding: 14px 16px 16px; }
@@ -158,6 +159,7 @@
         <button class="chip" data-f="new">Nouveautés</button>
         <button class="chip" data-f="vente">Vente</button>
         <button class="chip" data-f="location">Location</button>
+        <button class="chip" data-f="particulier">Particuliers</button>
         <button class="chip" data-f="immobilier.pf">immobilier.pf</button>
         <button class="chip" data-f="petitesannonces.pf">petitesannonces.pf</button>
       </div>
@@ -198,6 +200,10 @@
           <label class="toggle"><input type="checkbox" name="kinds" value="vente" checked><span class="tick">✓</span>Vente</label>
           <label class="toggle"><input type="checkbox" name="kinds" value="location" checked><span class="tick">✓</span>Location</label>
           <label class="toggle"><input type="checkbox" name="kinds" value="autre" checked><span class="tick">✓</span>Autre</label>
+        </div></div>
+        <div class="field"><label>Annonceur</label><div class="toggles">
+          <label class="toggle"><input type="checkbox" name="sellers" value="particulier" checked><span class="tick">✓</span>Particuliers</label>
+          <label class="toggle"><input type="checkbox" name="sellers" value="pro" checked><span class="tick">✓</span>Agences et pros</label>
         </div></div>
         <div class="field"><label>Prix maximum (XPF)</label><input type="number" id="max-price" inputmode="numeric" placeholder="Sans limite"></div>
         <div class="field"><label>Mots-clés</label><input type="text" id="keywords" placeholder="punaauia, f3, piscine"><small>Séparés par des virgules. Si renseignés, seules les annonces qui en contiennent au moins un vous sont envoyées.</small></div>
@@ -266,11 +272,12 @@
   }
   function readPrefs() {
     const vals = (n) => [...document.querySelectorAll(`input[name=${n}]:checked`)].map((i) => i.value);
-    return { sources: vals('sources'), kinds: vals('kinds'), maxPrice: Number($('#max-price').value) || null, keywords: $('#keywords').value.split(',').map((k) => k.trim()).filter(Boolean) };
+    return { sources: vals('sources'), kinds: vals('kinds'), sellers: vals('sellers'), maxPrice: Number($('#max-price').value) || null, keywords: $('#keywords').value.split(',').map((k) => k.trim()).filter(Boolean) };
   }
   function writePrefs(p) {
     for (const i of document.querySelectorAll('input[name=sources]')) i.checked = p.sources.includes(i.value);
     for (const i of document.querySelectorAll('input[name=kinds]')) i.checked = p.kinds.includes(i.value);
+    for (const i of document.querySelectorAll('input[name=sellers]')) i.checked = (p.sellers || ['particulier', 'pro']).includes(i.value);
     $('#max-price').value = p.maxPrice || ''; $('#keywords').value = (p.keywords || []).join(', ');
   }
   function headers() { const h = { 'Content-Type': 'application/json' }; const c = $('#access-code').value; if (c) h['x-access-code'] = c; return h; }
@@ -324,7 +331,8 @@
     const f = state.filter;
     const items = state.listings.filter((l) => {
       if (f === 'new' && !isNew(l)) return false;
-      if (f !== 'all' && f !== 'new' && l.source !== f && l.kind !== f) return false;
+      if (f === 'particulier' && l.seller !== 'particulier') return false;
+      if (f !== 'all' && f !== 'new' && f !== 'particulier' && l.source !== f && l.kind !== f) return false;
       if (q && !`${l.title} ${l.description} ${l.location} ${l.category} ${l.agency}`.toLowerCase().includes(q)) return false;
       return true;
     });
@@ -334,9 +342,10 @@
     list.innerHTML = items.map((l) => {
       const src = l.source === 'immobilier.pf' ? 'immo' : 'pa';
       const meta = [l.location, l.area ? `${l.area} m²` : '', l.agency].filter(Boolean).map((m) => `<span>${esc(m)}</span>`).join('');
+      const sellerPill = l.seller === 'particulier' ? '<span class="pill part">Particulier</span>' : l.seller === 'pro' ? '<span class="pill pro">Pro</span>' : '';
       return `<a class="ad ${isNew(l) ? 'new' : ''}" href="${esc(l.url)}" target="_blank" rel="noopener">
         <div class="cover">${l.image ? `<img src="${esc(l.image)}" alt="" loading="lazy" onerror="this.remove()">` : `<div class="ph">${l.kind === 'location' ? '🔑' : l.category.toLowerCase().includes('terrain') ? '🌿' : '🏠'}</div>`}
-          <div class="pills"><span class="pill ${src}">${esc(l.source)}</span>${isNew(l) ? '<span class="pill new">Nouveau</span>' : ''}</div></div>
+          <div class="pills"><span class="pill ${src}">${esc(l.source)}</span>${sellerPill}${isNew(l) ? '<span class="pill new">Nouveau</span>' : ''}</div></div>
         <div class="body">
           <div class="row"><div class="price">${esc(l.priceLabel || 'Prix non précisé')}</div><div class="when">${timeAgo(l.seenAt || l.publishedAt)}</div></div>
           <div class="title">${esc(l.title)}</div>

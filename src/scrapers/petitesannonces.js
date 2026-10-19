@@ -56,6 +56,7 @@ function parseItem(block) {
     priceLabel: price ? `${price.toLocaleString('fr-FR')} XPF` : '',
     area: null,
     agency: '',
+    seller: 'inconnu', // précisé ensuite par enrich()
     description: text.slice(0, 300),
     image: null,
     url: link.replace(/^http:/, 'https:'),
@@ -74,6 +75,23 @@ export function parseFeed(xml) {
   // Tri décroissant par identifiant (= ordre de publication)
   items.sort((a, b) => Number(b.sourceId) - Number(a.sourceId));
   return items;
+}
+
+/**
+ * Complète une annonce depuis sa page : particulier ou professionnel, date de
+ * publication. La page affiche « N° 2400657 (PRO) » pour les professionnels.
+ */
+export async function enrich(item) {
+  const res = await fetchWithRetry(item.url, { headers: { Accept: 'text/html' } }, { retries: 2, timeoutMs: 25000 });
+  const html = Buffer.from(await res.arrayBuffer()).toString('latin1');
+  const head = html.match(/N&deg;\s*(\d+)([^<]*)<br>\s*Du\s+(\d{2})\/(\d{2})\/(\d{2})/i);
+  if (head && head[1] === item.sourceId) {
+    item.seller = /\(PRO\)/i.test(head[2]) ? 'pro' : 'particulier';
+    if (!item.publishedAt) item.publishedAt = `20${head[5]}-${head[4]}-${head[3]}T00:00:00.000Z`;
+  } else {
+    item.seller = /\(PRO\)/.test(html) ? 'pro' : 'particulier';
+  }
+  return item;
 }
 
 /**
