@@ -1,0 +1,12 @@
+services:
+  veille-immo:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      CHECK_INTERVAL_MIN: "5"
+      VAPID_SUBJECT: "mailto:vous@exemple.com"
+      # ACCESS_CODE: "un-code-secret"
+    volumes:
+      - ./data:/data

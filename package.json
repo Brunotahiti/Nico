@@ -1,0 +1,19 @@
+{
+  "name": "veille-immo-pf",
+  "version": "1.0.0",
+  "description": "Alerte en temps réel des nouvelles annonces immobilières sur immobilier.pf et petitesannonces.pf (PWA + notifications push iPhone)",
+  "main": "src/server.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node src/server.js",
+    "check": "node src/check.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "web-push": "^3.6.7"
+  }
+}

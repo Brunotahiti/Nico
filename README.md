@@ -1,0 +1,95 @@
+# Veille immo Tahiti
+
+Application web (PWA) qui surveille **immobilier.pf** et **petitesannonces.pf** et vous envoie une **notification sur votre iPhone** dès qu'une nouvelle annonce immobilière est publiée. Objectif : être le premier à voir les nouvelles annonces.
+
+## Comment ça marche
+
+- Un petit serveur Node.js interroge les deux sites toutes les 5 minutes (réglable) :
+  - immobilier.pf : via l'API interne que le site utilise lui-même (`/api/bid/light`, triée par date de création).
+  - petitesannonces.pf : via le flux RSS de la rubrique Immobilier (`rss.php?r=1`). Les annonces « Recherche immobilier » (demandes) sont ignorées.
+- Chaque annonce jamais vue est mémorisée et déclenche une notification **Web Push** vers tous les appareils abonnés.
+- L'application affiche aussi la liste des dernières annonces détectées, avec un lien direct vers l'annonce d'origine.
+- Préférences facultatives par appareil : sites, type (vente / location / autre), prix maximum, mots-clés.
+- Au tout premier démarrage, les annonces déjà en ligne sont mémorisées **sans** envoyer de notification (pas de rafale de 100 alertes).
+
+## Pré-requis côté iPhone
+
+Les notifications push web fonctionnent sur iPhone à partir d'**iOS 16.4**, uniquement quand le site est **ajouté à l'écran d'accueil** et servi en **HTTPS**.
+
+1. Ouvrez l'adresse de votre serveur dans **Safari**.
+2. Bouton **Partager** → **« Sur l'écran d'accueil »** → **Ajouter**.
+3. Ouvrez l'application depuis l'écran d'accueil, touchez **Activer les notifications** et acceptez.
+4. Touchez **Notification de test** pour vérifier.
+
+## Installation
+
+### Option A : Docker (recommandé sur un VPS, un NAS ou un Raspberry Pi)
+
+```bash
+git clone <ce dépôt> veille-immo && cd veille-immo
+docker compose up -d --build
+```
+
+Le serveur écoute sur le port 3000. L'état est conservé dans `./data`.
+
+### Option B : Node.js directement
+
+```bash
+npm install
+npm start
+```
+
+Variables d'environnement (voir `.env.example`) :
+
+| Variable | Rôle | Défaut |
+|---|---|---|
+| `PORT` | Port HTTP | `3000` |
+| `DATA_DIR` | Dossier de l'état persistant | `./data` |
+| `CHECK_INTERVAL_MIN` | Fréquence de vérification (minutes) | `5` |
+| `VAPID_SUBJECT` | Contact transmis aux services push | `mailto:veille-immo@example.com` |
+| `ACCESS_CODE` | Code demandé pour s'abonner (vide = ouvert) | vide |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | Clés push ; générées automatiquement dans `DATA_DIR/vapid.json` si absentes | auto |
+
+### HTTPS obligatoire
+
+Safari n'autorise les notifications que sur une adresse `https://`. Solutions simples :
+
+- **Hébergeur avec HTTPS inclus** : Railway, Fly.io, Render (plan payant ou « background worker » : sur un plan gratuit qui met le service en veille, la surveillance s'arrête). Déployez le `Dockerfile`, montez un volume sur `/data` ou renseignez `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY` pour ne pas perdre les abonnements au redéploiement.
+- **Chez vous** (NAS, Raspberry Pi) : mettez un reverse proxy devant (Caddy obtient un certificat tout seul) ou utilisez un tunnel type Cloudflare Tunnel / Tailscale Funnel.
+
+Exemple Caddy (`Caddyfile`) :
+
+```
+immo.mondomaine.pf {
+    reverse_proxy localhost:3000
+}
+```
+
+### Protéger l'accès
+
+Si le serveur est accessible publiquement, définissez `ACCESS_CODE`. L'application demandera ce code pour activer les notifications (la liste des annonces reste visible).
+
+## Vérifier que les sources répondent
+
+```bash
+npm run check
+```
+
+Affiche les 5 dernières annonces de chaque site.
+
+## API (pour information)
+
+| Méthode | Route | Rôle |
+|---|---|---|
+| GET | `/api/config` | Clé publique VAPID, intervalle, préférences par défaut |
+| GET | `/api/listings?limit=100` | Dernières annonces détectées + état des sources |
+| POST | `/api/subscribe` | Enregistre un abonnement push et ses préférences |
+| POST | `/api/unsubscribe` | Supprime un abonnement |
+| POST | `/api/test-notification` | Envoie une notification de test |
+| POST | `/api/check-now` | Force une vérification immédiate |
+
+## Limites à connaître
+
+- Les deux sites peuvent changer leur structure ou leur API : la page « Surveillance » de l'application signale un site en erreur.
+- immobilier.pf coupe parfois les connexions ; le programme réessaie automatiquement.
+- Les notifications sont envoyées via les serveurs push d'Apple ; le serveur doit donc avoir accès à Internet en sortie.

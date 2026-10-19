@@ -1,0 +1,16 @@
+{
+  "name": "Veille immo Tahiti",
+  "short_name": "Veille immo",
+  "description": "Alerte dès qu'une nouvelle annonce immobilière paraît sur immobilier.pf ou petitesannonces.pf",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "fr",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

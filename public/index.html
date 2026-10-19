@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Veille immo Tahiti</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Alerte dès qu'une nouvelle annonce immobilière paraît sur immobilier.pf ou petitesannonces.pf">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Veille immo">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <link rel="icon" href="/icons/icon-192.png">
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --card-2: #273449; --text: #e2e8f0; --muted: #94a3b8;
+      --accent: #f59e0b; --accent-text: #0f172a; --ok: #22c55e; --warn: #f97316; --err: #ef4444;
+      --immo: #3b82f6; --pa: #a855f7; --radius: 14px;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-text-size-adjust: 100%; }
+    body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+    .wrap { max-width: 640px; margin: 0 auto; padding: 16px; }
+    header { display: flex; align-items: center; gap: 12px; padding: 8px 0 16px; }
+    header img { width: 44px; height: 44px; border-radius: 12px; }
+    header h1 { font-size: 1.25rem; margin: 0; }
+    header p { margin: 0; color: var(--muted); font-size: .85rem; }
+    .card { background: var(--card); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; }
+    .card h2 { font-size: 1rem; margin: 0 0 10px; display: flex; align-items: center; gap: 8px; }
+    .status { display: flex; flex-wrap: wrap; gap: 8px; font-size: .85rem; color: var(--muted); }
+    .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); margin-right: 5px; vertical-align: middle; }
+    .dot.ok { background: var(--ok); } .dot.err { background: var(--err); } .dot.warn { background: var(--warn); }
+    button { font: inherit; border: 0; border-radius: 10px; padding: 12px 16px; cursor: pointer; font-weight: 600; }
+    .btn-primary { background: var(--accent); color: var(--accent-text); width: 100%; font-size: 1.05rem; }
+    .btn-secondary { background: var(--card-2); color: var(--text); }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .btn-row button { flex: 1; }
+    button:disabled { opacity: .5; cursor: default; }
+    .notice { background: var(--card-2); border-left: 4px solid var(--accent); padding: 10px 12px; border-radius: 8px; font-size: .9rem; margin: 10px 0; }
+    .notice.ok { border-color: var(--ok); } .notice.err { border-color: var(--err); }
+    label.chk { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+    input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--accent); }
+    input[type=text], input[type=number], input[type=password] { width: 100%; font: inherit; padding: 10px 12px; border-radius: 10px; border: 1px solid #334155; background: var(--bg); color: var(--text); }
+    .field { margin: 10px 0; } .field small { color: var(--muted); display: block; margin-top: 4px; }
+    fieldset { border: 0; padding: 0; margin: 8px 0; } legend { color: var(--muted); font-size: .85rem; margin-bottom: 4px; }
+    details summary { cursor: pointer; color: var(--muted); font-size: .9rem; padding: 6px 0; }
+    .list { display: flex; flex-direction: column; gap: 10px; }
+    .item { display: flex; gap: 12px; background: var(--card); border-radius: var(--radius); padding: 12px; text-decoration: none; color: inherit; }
+    .item.new { outline: 2px solid var(--accent); }
+    .thumb { width: 84px; height: 84px; border-radius: 10px; object-fit: cover; background: var(--card-2); flex: none; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+    .item .body { min-width: 0; flex: 1; }
+    .item .title { font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .item .meta { color: var(--muted); font-size: .85rem; margin-top: 4px; }
+    .item .price { color: var(--accent); font-weight: 700; margin-top: 4px; }
+    .badge { display: inline-block; font-size: .7rem; font-weight: 700; padding: 2px 7px; border-radius: 999px; color: #fff; text-transform: uppercase; letter-spacing: .03em; }
+    .badge.immo { background: var(--immo); } .badge.pa { background: var(--pa); } .badge.new { background: var(--accent); color: var(--accent-text); }
+    .filters { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px; }
+    .filters button { white-space: nowrap; padding: 8px 12px; font-size: .85rem; background: var(--card-2); color: var(--text); }
+    .filters button.active { background: var(--accent); color: var(--accent-text); }
+    .empty { color: var(--muted); text-align: center; padding: 24px; }
+    footer { color: var(--muted); font-size: .8rem; text-align: center; padding: 20px 0; }
+    .hidden { display: none !important; }
+    ol.steps { padding-left: 20px; margin: 6px 0; } ol.steps li { margin: 4px 0; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="/icons/icon-192.png" alt="">
+    <div>
+      <h1>Veille immo Tahiti</h1>
+      <p>immobilier.pf · petitesannonces.pf</p>
+    </div>
+  </header>
+
+  <section class="card" id="notif-card">
+    <h2>🔔 Notifications</h2>
+    <div id="notif-state"></div>
+    <div id="ios-install" class="notice hidden">
+      <strong>Sur iPhone, une étape avant d'activer :</strong>
+      <ol class="steps">
+        <li>Ouvrez cette page dans <strong>Safari</strong>.</li>
+        <li>Touchez le bouton <strong>Partager</strong> (carré avec une flèche).</li>
+        <li>Choisissez <strong>« Sur l'écran d'accueil »</strong>, puis <strong>Ajouter</strong>.</li>
+        <li>Ouvrez l'application depuis l'écran d'accueil et revenez ici.</li>
+      </ol>
+      <small>iOS 16.4 ou plus récent est nécessaire.</small>
+    </div>
+    <div id="access-field" class="field hidden">
+      <input type="password" id="access-code" placeholder="Code d'accès" autocomplete="off">
+      <small>Ce serveur est protégé par un code d'accès.</small>
+    </div>
+    <details id="prefs">
+      <summary>Préférences d'alerte (facultatif)</summary>
+      <fieldset>
+        <legend>Sites surveillés</legend>
+        <label class="chk"><input type="checkbox" name="sources" value="immobilier.pf" checked> immobilier.pf</label>
+        <label class="chk"><input type="checkbox" name="sources" value="petitesannonces.pf" checked> petitesannonces.pf</label>
+      </fieldset>
+      <fieldset>
+        <legend>Type d'annonce</legend>
+        <label class="chk"><input type="checkbox" name="kinds" value="vente" checked> Vente</label>
+        <label class="chk"><input type="checkbox" name="kinds" value="location" checked> Location</label>
+        <label class="chk"><input type="checkbox" name="kinds" value="autre" checked> Autre (saisonnier, colocation, terrain nu…)</label>
+      </fieldset>
+      <div class="field">
+        <input type="number" id="max-price" inputmode="numeric" placeholder="Prix maximum (XPF), vide = sans limite">
+      </div>
+      <div class="field">
+        <input type="text" id="keywords" placeholder="Mots-clés, séparés par des virgules (ex : punaauia, f3, piscine)">
+        <small>Si renseigné, seules les annonces contenant au moins un mot-clé déclenchent une alerte.</small>
+      </div>
+    </details>
+    <button class="btn-primary" id="btn-enable">Activer les notifications</button>
+    <div class="btn-row">
+      <button class="btn-secondary" id="btn-save" disabled>Enregistrer les préférences</button>
+      <button class="btn-secondary" id="btn-test" disabled>Notification de test</button>
+      <button class="btn-secondary" id="btn-disable" disabled>Désactiver</button>
+    </div>
+    <div id="msg"></div>
+  </section>
+
+  <section class="card">
+    <h2>📡 Surveillance</h2>
+    <div class="status" id="status">Chargement…</div>
+    <div class="btn-row">
+      <button class="btn-secondary" id="btn-refresh">Actualiser</button>
+      <button class="btn-secondary" id="btn-check">Vérifier maintenant</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="filters" id="filters">
+      <button data-f="all" class="active">Tout</button>
+      <button data-f="immobilier.pf">immobilier.pf</button>
+      <button data-f="petitesannonces.pf">petitesannonces.pf</button>
+      <button data-f="vente">Vente</button>
+      <button data-f="location">Location</button>
+    </div>
+    <div class="list" id="list"><div class="empty">Chargement des annonces…</div></div>
+  </section>
+
+  <footer>Les annonces appartiennent à leurs sites respectifs. Cette application ne fait que vous prévenir.</footer>
+</div>
+
+<script>
+(() => {
+  const $ = (s) => document.querySelector(s);
+  const state = { config: null, reg: null, sub: null, listings: [], filter: 'all', lastVisit: Number(localStorage.getItem('lastVisit') || 0) };
+  const ua = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const pushSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+  function msg(text, cls = '') {
+    const el = $('#msg');
+    el.innerHTML = text ? `<div class="notice ${cls}">${text}</div>` : '';
+  }
+  function urlB64ToUint8Array(b64) {
+    const padding = '='.repeat((4 - (b64.length % 4)) % 4);
+    const base64 = (b64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    return Uint8Array.from([...raw].map((c) => c.charCodeAt(0)));
+  }
+  function readPrefs() {
+    const vals = (name) => [...document.querySelectorAll(`input[name=${name}]:checked`)].map((i) => i.value);
+    return {
+      sources: vals('sources'),
+      kinds: vals('kinds'),
+      maxPrice: Number($('#max-price').value) || null,
+      keywords: $('#keywords').value.split(',').map((k) => k.trim()).filter(Boolean),
+    };
+  }
+  function writePrefs(p) {
+    for (const i of document.querySelectorAll('input[name=sources]')) i.checked = p.sources.includes(i.value);
+    for (const i of document.querySelectorAll('input[name=kinds]')) i.checked = p.kinds.includes(i.value);
+    $('#max-price').value = p.maxPrice || '';
+    $('#keywords').value = (p.keywords || []).join(', ');
+  }
+  function headers() {
+    const h = { 'Content-Type': 'application/json' };
+    const code = $('#access-code').value;
+    if (code) h['x-access-code'] = code;
+    return h;
+  }
+  async function api(path, body) {
+    const res = await fetch(path, body ? { method: 'POST', headers: headers(), body: JSON.stringify(body) } : {});
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+    return data;
+  }
+
+  function renderNotifState() {
+    const el = $('#notif-state');
+    const enable = $('#btn-enable');
+    $('#ios-install').classList.toggle('hidden', !(isIOS && !isStandalone));
+    if (!pushSupported || (isIOS && !isStandalone)) {
+      el.innerHTML = `<p class="status"><span class="dot warn"></span>${isIOS ? 'Installez d\'abord l\'application sur l\'écran d\'accueil.' : 'Ce navigateur ne prend pas en charge les notifications push.'}</p>`;
+      enable.disabled = true;
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      el.innerHTML = '<p class="status"><span class="dot err"></span>Notifications refusées. Réactivez-les dans Réglages › Notifications › Veille immo.</p>';
+      enable.disabled = true;
+      return;
+    }
+    const on = Boolean(state.sub);
+    el.innerHTML = on
+      ? '<p class="status"><span class="dot ok"></span>Notifications activées sur cet appareil.</p>'
+      : '<p class="status"><span class="dot"></span>Notifications non activées.</p>';
+    enable.disabled = on;
+    enable.textContent = on ? 'Notifications activées ✓' : 'Activer les notifications';
+    $('#btn-save').disabled = !on;
+    $('#btn-test').disabled = !on;
+    $('#btn-disable').disabled = !on;
+  }
+
+  async function subscribe() {
+    msg('');
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { renderNotifState(); return msg('Permission refusée.', 'err'); }
+      const sub = await state.reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlB64ToUint8Array(state.config.vapidPublicKey),
+      });
+      const r = await api('/api/subscribe', { subscription: sub.toJSON(), prefs: readPrefs() });
+      state.sub = sub;
+      writePrefs(r.prefs);
+      renderNotifState();
+      msg('C\'est prêt ! Vous recevrez une notification à chaque nouvelle annonce.', 'ok');
+    } catch (err) {
+      msg(`Activation impossible : ${err.message}`, 'err');
+    }
+  }
+  async function savePrefs() {
+    try {
+      const r = await api('/api/subscribe', { subscription: state.sub.toJSON(), prefs: readPrefs() });
+      writePrefs(r.prefs);
+      msg('Préférences enregistrées.', 'ok');
+    } catch (err) { msg(err.message, 'err'); }
+  }
+  async function unsubscribe() {
+    try {
+      await api('/api/unsubscribe', { endpoint: state.sub.endpoint });
+      await state.sub.unsubscribe();
+      state.sub = null;
+      renderNotifState();
+      msg('Notifications désactivées.');
+    } catch (err) { msg(err.message, 'err'); }
+  }
+  async function testNotif() {
+    try {
+      await api('/api/test-notification', { subscription: state.sub.toJSON() });
+      msg('Notification de test envoyée.', 'ok');
+    } catch (err) { msg(err.message, 'err'); }
+  }
+
+  function timeAgo(iso) {
+    if (!iso) return '';
+    const d = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (d < 60) return 'à l\'instant';
+    if (d < 3600) return `il y a ${Math.floor(d / 60)} min`;
+    if (d < 86400) return `il y a ${Math.floor(d / 3600)} h`;
+    return `il y a ${Math.floor(d / 86400)} j`;
+  }
+  function esc(s) { return String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+  function renderList() {
+    const list = $('#list');
+    const f = state.filter;
+    const items = state.listings.filter((l) => f === 'all' || l.source === f || l.kind === f);
+    if (!items.length) { list.innerHTML = '<div class="empty">Aucune annonce pour le moment. La liste se remplit au fil des nouvelles publications.</div>'; return; }
+    list.innerHTML = items.map((l) => {
+      const isNew = l.seenAt && new Date(l.seenAt).getTime() > state.lastVisit;
+      const src = l.source === 'immobilier.pf' ? 'immo' : 'pa';
+      const meta = [l.category, l.location, l.area ? `${l.area} m²` : '', l.agency].filter(Boolean).join(' · ');
+      return `<a class="item ${isNew ? 'new' : ''}" href="${esc(l.url)}" target="_blank" rel="noopener">
+        ${l.image ? `<img class="thumb" src="${esc(l.image)}" alt="" loading="lazy">` : `<div class="thumb">${l.kind === 'location' ? '🔑' : '🏠'}</div>`}
+        <div class="body">
+          <div><span class="badge ${src}">${esc(l.source)}</span> ${isNew ? '<span class="badge new">Nouveau</span>' : ''} <span class="meta">${timeAgo(l.seenAt || l.publishedAt)}</span></div>
+          <div class="title">${esc(l.title)}</div>
+          ${meta ? `<div class="meta">${esc(meta)}</div>` : ''}
+          <div class="price">${esc(l.priceLabel || '')}</div>
+        </div></a>`;
+    }).join('');
+  }
+  function renderStatus(d) {
+    const parts = [`<span><span class="dot ${d.lastCheck ? 'ok' : 'warn'}"></span>Dernière vérification : ${d.lastCheck ? timeAgo(d.lastCheck) : 'jamais'}</span>`];
+    for (const [name, s] of Object.entries(d.sources || {})) {
+      parts.push(`<span title="${esc(s.error || '')}"><span class="dot ${s.ok ? 'ok' : 'err'}"></span>${esc(name)}${s.ok ? '' : ' (erreur)'}</span>`);
+    }
+    parts.push(`<span>Toutes les ${state.config?.checkIntervalMin ?? '?'} min · ${d.subscribers} appareil(s) abonné(s)</span>`);
+    $('#status').innerHTML = parts.join('');
+  }
+  async function loadListings() {
+    try {
+      const d = await api('/api/listings?limit=150');
+      state.listings = d.listings;
+      renderStatus(d);
+      renderList();
+    } catch (err) { $('#status').textContent = `Serveur injoignable : ${err.message}`; }
+  }
+
+  async function init() {
+    try { state.config = await api('/api/config'); } catch (err) { msg(`Impossible de joindre le serveur : ${err.message}`, 'err'); }
+    if (state.config?.requiresAccessCode) {
+      $('#access-field').classList.remove('hidden');
+      $('#access-code').value = localStorage.getItem('accessCode') || '';
+      $('#access-code').addEventListener('change', (e) => localStorage.setItem('accessCode', e.target.value));
+    }
+    if (pushSupported) {
+      try {
+        state.reg = await navigator.serviceWorker.register('/sw.js');
+        state.sub = await state.reg.pushManager.getSubscription();
+        if (state.sub) {
+          const r = await api(`/api/prefs?endpoint=${encodeURIComponent(state.sub.endpoint)}`);
+          if (r.subscribed) writePrefs(r.prefs);
+          else state.sub = null; // le serveur ne connaît plus cet abonnement
+        }
+      } catch (err) { msg(`Service worker : ${err.message}`, 'err'); }
+    }
+    renderNotifState();
+    await loadListings();
+    localStorage.setItem('lastVisit', String(Date.now()));
+  }
+
+  $('#btn-enable').addEventListener('click', subscribe);
+  $('#btn-save').addEventListener('click', savePrefs);
+  $('#btn-disable').addEventListener('click', unsubscribe);
+  $('#btn-test').addEventListener('click', testNotif);
+  $('#btn-refresh').addEventListener('click', loadListings);
+  $('#btn-check').addEventListener('click', async () => {
+    const b = $('#btn-check'); b.disabled = true; b.textContent = 'Vérification…';
+    try { const r = await api('/api/check-now', {}); msg(r.fresh ? `${r.fresh} nouvelle(s) annonce(s) détectée(s).` : 'Rien de nouveau pour l\'instant.', 'ok'); await loadListings(); }
+    catch (err) { msg(err.message, 'err'); }
+    finally { b.disabled = false; b.textContent = 'Vérifier maintenant'; }
+  });
+  $('#filters').addEventListener('click', (e) => {
+    const b = e.target.closest('button'); if (!b) return;
+    state.filter = b.dataset.f;
+    for (const x of $('#filters').children) x.classList.toggle('active', x === b);
+    renderList();
+  });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadListings(); });
+  init();
+})();
+</script>
+</body>
+</html>
