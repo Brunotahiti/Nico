@@ -8,8 +8,8 @@
 //   2. Edit code → remplacer tout le contenu par ce fichier → Deploy
 //   3. Settings → Variables and Secrets → ajouter RELAY_KEY (secret) = une longue chaîne au choix
 //   4. Noter l'adresse du worker (https://xxx.yyy.workers.dev) et, sur le serveur :
-//        FETCH_RELAY_URL=https://xxx.yyy.workers.dev FETCH_RELAY_KEY=<la même chaîne> \
-//        sudo -E bash /opt/veille-immo/deploy/install-vps.sh
+//        sudo env FETCH_RELAY_URL=https://xxx.yyy.workers.dev FETCH_RELAY_KEY=<la même chaîne> \
+//            bash /opt/veille-immo/deploy/install-vps.sh
 
 const ALLOWED_DEFAULT = 'petitesannonces.pf,petites-annonces.pf,immobilier.pf';
 const UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
