@@ -13,6 +13,12 @@
 # Sinon, un Caddy est lancé pour obtenir le certificat HTTPS.
 set -euo pipefail
 
+# Le script met à jour le dépôt qui le contient pendant son exécution : on travaille sur une copie.
+if [ "${INSTALL_SELF_COPY:-}" != "1" ] && [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "${BASH_SOURCE[0]}" ]; then
+  _copy="$(mktemp /tmp/install-vps.XXXXXX.sh)"; cp "${BASH_SOURCE[0]}" "$_copy"
+  INSTALL_SELF_COPY=1 exec bash "$_copy" "$@"
+fi
+
 REPO="${REPO:-https://github.com/Brunotahiti/Nico.git}"
 BRANCH="${BRANCH:-claude/gallant-hopper-e2wyec}"
 APP_DIR="${APP_DIR:-/opt/veille-immo}"
@@ -71,12 +77,25 @@ if [ -n "$TRAEFIK" ]; then
   log "Traefik détecté (conteneur « $TRAEFIK ») : l'application s'y branche"
 
   # Réseau Docker de Traefik (premier réseau autre que bridge/host)
+  # Toutes les étiquettes des conteneurs en cours : on y lit le réseau, le résolveur et le point d'entrée utilisés par les autres applications
+  ALL_LABELS="$(docker ps -q | xargs -r docker inspect -f '{{range $k,$v := .Config.Labels}}{{$k}}={{$v}}{{"\n"}}{{end}}' 2>/dev/null || true)"
   TRAEFIK_NETWORK="${TRAEFIK_NETWORK:-$(envget TRAEFIK_NETWORK)}"
   if [ -z "$TRAEFIK_NETWORK" ]; then
+    # a) réseau propre de Traefik (hors bridge/host)
     TRAEFIK_NETWORK="$(docker inspect -f '{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}' "$TRAEFIK" | grep -vE '^(bridge|host|none)$' | head -1)"
   fi
-  # Toutes les étiquettes des conteneurs en cours : on y lit le résolveur et le point d'entrée utilisés par les autres applications
-  ALL_LABELS="$(docker ps -q | xargs -r docker inspect -f '{{range $k,$v := .Config.Labels}}{{$k}}={{$v}}{{"\n"}}{{end}}' 2>/dev/null || true)"
+  if [ -z "$TRAEFIK_NETWORK" ]; then
+    # b) étiquette traefik.docker.network la plus utilisée par les autres applications
+    TRAEFIK_NETWORK="$(echo "$ALL_LABELS" | grep -oE '^traefik\.docker\.network=[A-Za-z0-9_.-]+' | cut -d= -f2 | sort | uniq -c | sort -rn | awk 'NR==1{print $2}')"
+  fi
+  if [ -z "$TRAEFIK_NETWORK" ]; then
+    # c) réseau le plus utilisé par les conteneurs exposés via Traefik
+    TRAEFIK_NETWORK="$(docker ps -q | xargs -r docker inspect -f '{{if index .Config.Labels "traefik.enable"}}{{range $k,$v := .NetworkSettings.Networks}}{{$k}}{{"\n"}}{{end}}{{end}}' 2>/dev/null | grep -vE '^(host|none)$' | sort | uniq -c | sort -rn | awk 'NR==1{print $2}')"
+  fi
+  if [ -z "$TRAEFIK_NETWORK" ] && [ "$(docker inspect -f '{{.HostConfig.NetworkMode}}' "$TRAEFIK")" = "host" ]; then
+    # d) Traefik en mode host : il atteint n'importe quel réseau bridge
+    TRAEFIK_NETWORK="bridge"
+  fi
   TRAEFIK_CERTRESOLVER="${TRAEFIK_CERTRESOLVER:-$(envget TRAEFIK_CERTRESOLVER)}"
   if [ -z "$TRAEFIK_CERTRESOLVER" ]; then
     TRAEFIK_CERTRESOLVER="$(echo "$ALL_LABELS" | grep -oE 'tls\.certresolver=[A-Za-z0-9_-]+' | cut -d= -f2 | sort | uniq -c | sort -rn | awk 'NR==1{print $2}')"
