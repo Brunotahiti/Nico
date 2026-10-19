@@ -31,7 +31,7 @@ Sur un VPS Debian/Ubuntu, en root :
 ACCESS_CODE=unsecret curl -fsSL https://raw.githubusercontent.com/Brunotahiti/Nico/claude/gallant-hopper-e2wyec/deploy/install-vps.sh | sudo -E bash
 ```
 
-Le script installe Docker, télécharge le code dans `/opt/veille-immo`, lance l'application et un reverse proxy Caddy qui obtient un certificat HTTPS. Sans nom de domaine, il utilise automatiquement `<ip-du-vps>.sslip.io`. Avec un domaine pointant vers le VPS : ajoutez `DOMAIN=immo.mondomaine.pf` devant la commande. Relancer la commande met à jour l'application.
+Le script installe Docker, télécharge le code dans `/opt/veille-immo` et lance l'application. Si un Traefik tourne déjà sur le serveur, l'application s'y branche automatiquement (réseau, point d'entrée et résolveur de certificats détectés depuis vos autres conteneurs) ; sinon un reverse proxy Caddy est lancé pour obtenir le certificat HTTPS. Sans nom de domaine, il utilise automatiquement `<ip-du-vps>.sslip.io`. Avec un domaine pointant vers le VPS : ajoutez `DOMAIN=immo.mondomaine.pf` devant la commande. Relancer la commande met à jour l'application.
 
 Depuis votre ordinateur, `deploy/deploy-from-here.sh` fait la même chose via SSH (variables `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`).
 

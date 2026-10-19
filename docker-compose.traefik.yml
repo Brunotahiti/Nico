@@ -1,0 +1,29 @@
+# Production derrière un Traefik déjà en place sur le serveur.
+# Les variables DOMAIN, TRAEFIK_NETWORK, TRAEFIK_ENTRYPOINT, TRAEFIK_CERTRESOLVER
+# sont lues depuis .env (remplies automatiquement par deploy/install-vps.sh).
+services:
+  app:
+    build: .
+    container_name: veille-immo
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /data
+    volumes:
+      - ./data:/data
+    networks:
+      - default
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NETWORK}"
+      - "traefik.http.routers.veille-immo.rule=Host(`${DOMAIN}`)"
+      - "traefik.http.routers.veille-immo.entrypoints=${TRAEFIK_ENTRYPOINT}"
+      - "traefik.http.routers.veille-immo.tls=true"
+      - "traefik.http.routers.veille-immo.tls.certresolver=${TRAEFIK_CERTRESOLVER}"
+      - "traefik.http.services.veille-immo.loadbalancer.server.port=3000"
+
+networks:
+  traefik:
+    external: true
+    name: ${TRAEFIK_NETWORK}
