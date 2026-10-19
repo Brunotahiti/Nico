@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installe et lance Veille immo Tahiti sur un VPS Debian/Ubuntu, avec HTTPS.
+# Installe et lance Méthode Nico sur un VPS Debian/Ubuntu, avec HTTPS.
 #
 #   curl -fsSL https://raw.githubusercontent.com/Brunotahiti/Nico/claude/gallant-hopper-e2wyec/deploy/install-vps.sh | sudo -E bash
 #
