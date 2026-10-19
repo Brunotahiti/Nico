@@ -1,5 +1,5 @@
 {
-  "name": "methode-nico",
+  "name": "nick-immobilier",
   "version": "1.0.0",
   "description": "Alerte en temps réel des nouvelles annonces immobilières sur immobilier.pf et petitesannonces.pf (PWA + notifications push iPhone)",
   "main": "src/server.js",

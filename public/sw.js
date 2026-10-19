@@ -1,6 +1,6 @@
 // Service worker : réception des notifications push et ouverture de l'annonce.
-const CACHE = 'methode-nico-v2';
-const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icons/icon-192.png'];
+const CACHE = 'nick-immobilier-v1';
+const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icons/icon-192.png', '/img/banner.webp'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).catch(() => {}));
@@ -30,7 +30,7 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  let data = { title: 'Méthode Nico', body: 'Nouvelle annonce', url: '/' };
+  let data = { title: 'Nick Immobilier', body: 'Nouvelle annonce', url: '/' };
   try {
     if (event.data) data = { ...data, ...event.data.json() };
   } catch {

@@ -1,4 +1,4 @@
-# Méthode Nico
+# Nick Immobilier
 
 Application web (PWA) qui surveille **immobilier.pf** et **petitesannonces.pf** et vous envoie une **notification sur votre iPhone** dès qu'une nouvelle annonce immobilière est publiée. Objectif : être le premier à voir les nouvelles annonces.
 

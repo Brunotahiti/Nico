@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="utf-8">
-  <title>Méthode Nico</title>
+  <title>Nick Immobilier</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="Alerte dès qu'une nouvelle annonce immobilière paraît sur immobilier.pf ou petitesannonces.pf">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#f2f2f7">
@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Méthode Nico">
+  <meta name="apple-mobile-web-app-title" content="Nick Immobilier">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
   <link rel="icon" href="/icons/icon-192.png">
@@ -46,6 +46,10 @@
     .navbar { position: sticky; top: 0; z-index: 20; height: calc(44px + env(safe-area-inset-top)); padding-top: env(safe-area-inset-top); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 17px; background: var(--bar); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: .5px solid transparent; transition: border-color .2s; }
     .navbar span { opacity: 0; transition: opacity .2s; }
     .navbar.scrolled { border-bottom-color: var(--sep); } .navbar.scrolled span { opacity: 1; }
+    .banner { padding: 14px 0 6px; }
+    .banner img { display: block; width: 100%; height: auto; filter: drop-shadow(0 10px 24px rgba(8, 28, 60, .28)); }
+    .banner-sub { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 2px 14px; }
+    .banner-sub .sub { color: var(--label-2); font-size: 14px; }
     .large-title { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 4px 0 12px; }
     .large-title h1 { font-size: 34px; font-weight: 700; letter-spacing: .37px; margin: 0; line-height: 1.2; }
     .large-title .sub { color: var(--label-2); font-size: 15px; margin-top: 2px; }
@@ -176,12 +180,13 @@
   </style>
 </head>
 <body>
-  <div class="navbar" id="navbar"><span id="navbar-title">Méthode Nico</span></div>
+  <div class="navbar" id="navbar"><span id="navbar-title">Nick Immobilier</span></div>
   <div class="wrap">
 
     <!-- Annonces -->
     <section class="view active" id="view-ads">
-      <div class="large-title"><div><h1>Méthode Nico</h1><div class="sub">Annonces immobilières · immobilier.pf · petitesannonces.pf</div></div><div class="status-chip" id="live"><i class="warn"></i><span id="live-text">…</span></div></div>
+      <div class="banner"><picture><source srcset="/img/banner.webp" type="image/webp"><img src="/img/banner.png" alt="Nick Immobilier"></picture></div>
+      <div class="banner-sub"><div class="sub">Veille des annonces · immobilier.pf · petitesannonces.pf</div><div class="status-chip" id="live"><i class="warn"></i><span id="live-text">…</span></div></div>
       <div class="search"><svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 2.2a5.8 5.8 0 1 0 0 11.6 5.8 5.8 0 0 0 0-11.6zm6.1 11 5.2 5.2-1.6 1.6-5.2-5.2z"/></svg><input type="search" id="q" placeholder="Rechercher" autocomplete="off"></div>
       <div class="segmented" id="seg">
         <button data-f="all" class="active">Tout</button><button data-f="vente">Vente</button><button data-f="location">Location</button><button data-f="particulier">Particuliers</button>
@@ -288,7 +293,7 @@
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   const pushSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   let toastTimer;
-  const TITLES = { ads: 'Méthode Nico', alerts: 'Alertes', status: 'État' };
+  const TITLES = { ads: 'Nick Immobilier', alerts: 'Alertes', status: 'État' };
 
   function toast(text, cls = '') { const el = $('#toast'); el.textContent = text; el.className = `toast show ${cls}`; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 3200); }
   function urlB64ToUint8Array(b64) { const padding = '='.repeat((4 - (b64.length % 4)) % 4); const raw = atob((b64 + padding).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...raw].map((c) => c.charCodeAt(0))); }
@@ -308,7 +313,7 @@
     $('#btn-save').disabled = !on; $('#btn-test').disabled = !on; $('#btn-disable').disabled = !on;
     if (needInstall) { ring.className = 'ring off'; title.textContent = 'Installez l\'app d\'abord'; text.textContent = 'Ajoutez cette page à votre écran d\'accueil en suivant les étapes ci-dessous.'; enable.disabled = true; return; }
     if (!pushSupported) { ring.className = 'ring err'; title.textContent = 'Non pris en charge'; text.textContent = 'Ce navigateur ne gère pas les notifications push. Sur iPhone, utilisez Safari.'; enable.disabled = true; return; }
-    if (Notification.permission === 'denied') { ring.className = 'ring err'; title.textContent = 'Notifications bloquées'; text.textContent = 'Réactivez-les dans Réglages › Notifications › Méthode Nico.'; enable.disabled = true; return; }
+    if (Notification.permission === 'denied') { ring.className = 'ring err'; title.textContent = 'Notifications bloquées'; text.textContent = 'Réactivez-les dans Réglages › Notifications › Nick Immobilier.'; enable.disabled = true; return; }
     if (on) { ring.className = 'ring on'; title.textContent = 'Alertes activées'; text.textContent = 'Vous serez prévenu dès qu\'une nouvelle annonce paraît.'; enable.disabled = true; enable.textContent = 'Alertes activées'; }
     else { ring.className = 'ring off'; title.textContent = 'Alertes désactivées'; text.textContent = 'Soyez le premier informé des nouvelles annonces.'; enable.disabled = false; enable.textContent = 'Activer les alertes'; }
   }

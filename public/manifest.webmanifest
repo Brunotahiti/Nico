@@ -1,7 +1,7 @@
 {
-  "name": "Méthode Nico",
-  "short_name": "Méthode Nico",
-  "description": "Méthode Nico : alerte dès qu'une nouvelle annonce immobilière paraît sur immobilier.pf ou petitesannonces.pf",
+  "name": "Nick Immobilier",
+  "short_name": "Nick Immobilier",
+  "description": "Nick Immobilier : alerte dès qu'une nouvelle annonce immobilière paraît sur immobilier.pf ou petitesannonces.pf",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",

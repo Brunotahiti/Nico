@@ -78,7 +78,7 @@ export class Notifier {
 
   async sendTest(sub) {
     const payload = JSON.stringify({
-      title: 'Méthode Nico ✅',
+      title: 'Nick Immobilier ✅',
       body: 'Les notifications fonctionnent. Vous serez prévenu dès qu\'une nouvelle annonce paraît.',
       url: '/',
       tag: 'test',

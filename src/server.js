@@ -104,7 +104,7 @@ app.get('/sw.js', (req, res) => {
 app.use(express.static(path.join(ROOT, 'public'), { maxAge: '1h', etag: true }));
 
 app.listen(PORT, () => {
-  console.log(`Méthode Nico en écoute sur http://localhost:${PORT} (vérification toutes les ${CHECK_INTERVAL_MIN} min)`);
+  console.log(`Nick Immobilier en écoute sur http://localhost:${PORT} (vérification toutes les ${CHECK_INTERVAL_MIN} min)`);
   watcher.start();
 });
 
