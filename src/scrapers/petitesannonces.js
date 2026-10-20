@@ -78,6 +78,53 @@ export function parseFeed(xml) {
 }
 
 /**
+ * Lit la page de liste Immobilier, qui marque « (PRO) » les annonces de
+ * professionnels. Renvoie une table identifiant -> 'pro' | 'particulier'.
+ */
+export async function sellerMap(pages = 2) {
+  const map = new Map();
+  for (let p = 1; p <= pages; p++) {
+    const res = await fetchWithRetry(`${BASE}/annonces.php?r=1${p > 1 ? `&p=${p}` : ''}`, { headers: { Accept: 'text/html' } }, { retries: 3, timeoutMs: 25000 });
+    const html = Buffer.from(await res.arrayBuffer()).toString('latin1');
+    const cards = html.split(/<a class="lda"/).slice(1);
+    for (const card of cards) {
+      const id = card.match(/tahiti=(\d+)/)?.[1];
+      if (id) map.set(id, /class=["']?pra|\(PRO\)/i.test(card) ? 'pro' : 'particulier');
+    }
+  }
+  return map;
+}
+
+/**
+ * Détermine le type d'annonceur d'un lot d'annonces : d'abord par la page de
+ * liste, puis page par page pour celles qui n'y figurent pas.
+ */
+export async function enrichBatch(items, { maxDetail = 20 } = {}) {
+  if (!items.length) return items;
+  try {
+    const map = await sellerMap(2);
+    for (const it of items) if (map.has(it.sourceId)) it.seller = map.get(it.sourceId);
+  } catch (err) {
+    console.warn(`[petitesannonces] page de liste indisponible : ${err.message}`);
+  }
+  for (const it of items.filter((i) => i.seller === 'inconnu').slice(0, maxDetail)) {
+    try { await enrich(it); } catch (err) { console.warn(`[petitesannonces] détail ${it.sourceId} indisponible : ${err.message}`); }
+  }
+  return items;
+}
+
+/**
+ * Dernier recours si le site reste injoignable : les annonces d'agences portent
+ * presque toujours une référence (« - LM22658 », « VA21099 ») ou un préfixe d'agence.
+ */
+export function guessSeller(item) {
+  const t = `${item.title} ${item.description}`;
+  if (/(^|[\s-])[A-Z]{2}\d{4,6}\b/.test(item.title) || /^[A-Z]{3,}-/.test(item.title)) return 'pro';
+  if (/particulier\s+(à|a)\s+particulier|\bpas d'agence\b|\bsans agence\b/i.test(t)) return 'particulier';
+  return 'inconnu';
+}
+
+/**
  * Complète une annonce depuis sa page : particulier ou professionnel, date de
  * publication. La page affiche « N° 2400657 (PRO) » pour les professionnels.
  */

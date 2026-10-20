@@ -6,6 +6,7 @@ import * as petitesannonces from './scrapers/petitesannonces.js';
 
 const SOURCES = [immobilier, petitesannonces];
 const MAX_ENRICH_PER_CYCLE = 20;
+const MAX_PENDING_TRIES = 3; // passages (≈ 15 min) avant décision par déduction
 
 export class Watcher {
   constructor(store, notifier, { intervalMs }) {
@@ -53,11 +54,10 @@ export class Watcher {
             item.seenAt = new Date().toISOString();
             freshHere.push(item);
           }
-          // Détails complémentaires (particulier / pro…) pour les nouveautés seulement
-          if (mod.enrich && !firstRun) {
-            for (const item of freshHere.slice(0, MAX_ENRICH_PER_CYCLE)) {
-              try { await mod.enrich(item); } catch (err) { console.warn(`[watch] détail ${item.id} indisponible : ${err.message}`); }
-            }
+          // Type d'annonceur (particulier / pro) pour les nouveautés, et nouvel essai pour celles en attente
+          if (!firstRun && mod.enrichBatch) {
+            const pending = (this.store.state.pending || []).filter((p) => p.source === mod.SOURCE);
+            await mod.enrichBatch([...freshHere, ...pending], { maxDetail: MAX_ENRICH_PER_CYCLE });
           }
           fresh.push(...freshHere);
         } catch (err) {
@@ -66,6 +66,29 @@ export class Watcher {
           console.error(`[watch] ${mod.SOURCE} : ${err.message}`);
         }
         this.store.state.sourcesStatus[mod.SOURCE] = status;
+      }
+
+      // Annonces dont l'annonceur reste inconnu : on attend le passage suivant plutôt que de risquer une annonce pro
+      const toNotify = [];
+      const stillPending = [];
+      const previousPending = firstRun ? [] : (this.store.state.pending || []);
+      for (const item of [...previousPending, ...fresh]) {
+        if (item.seller !== 'inconnu') {
+          toNotify.push(item);
+          continue;
+        }
+        item.pendingTries = (item.pendingTries || 0) + 1;
+        if (item.pendingTries < MAX_PENDING_TRIES) { stillPending.push(item); continue; }
+        const mod = SOURCES.find((m) => m.SOURCE === item.source);
+        item.seller = mod?.guessSeller ? mod.guessSeller(item) : 'inconnu';
+        item.sellerGuessed = true;
+        toNotify.push(item);
+      }
+      this.store.state.pending = stillPending;
+      // Met à jour dans la liste affichée le type d'annonceur des annonces sorties de l'attente
+      for (const item of previousPending) {
+        const shown = this.store.listings.find((l) => l.id === item.id);
+        if (shown) Object.assign(shown, { seller: item.seller, publishedAt: shown.publishedAt || item.publishedAt });
       }
 
       // Les plus récentes en premier dans la liste affichée
@@ -78,9 +101,10 @@ export class Watcher {
       let sent = 0;
       if (firstRun) {
         console.log(`[watch] premier passage : ${fresh.length} annonces mémorisées, aucune notification envoyée`);
-      } else if (fresh.length) {
-        console.log(`[watch] ${fresh.length} nouvelle(s) annonce(s) : ${fresh.map((l) => l.title).join(' | ')}`);
-        sent = await this.notifier.notify(fresh);
+      } else if (fresh.length || toNotify.length) {
+        if (fresh.length) console.log(`[watch] ${fresh.length} nouvelle(s) annonce(s) : ${fresh.map((l) => `${l.title} [${l.seller}]`).join(' | ')}`);
+        if (stillPending.length) console.log(`[watch] ${stillPending.length} annonce(s) en attente de vérification de l'annonceur`);
+        sent = toNotify.length ? await this.notifier.notify(toNotify) : 0;
         console.log(`[watch] ${sent} notification(s) envoyée(s)`);
       } else {
         console.log('[watch] rien de nouveau');

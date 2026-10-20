@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Store, normalizePrefs, DEFAULT_PREFS } from './store.js';
-import { Notifier, loadVapidKeys } from './notifier.js';
+import { Notifier, loadVapidKeys, NOTIFY_PRO } from './notifier.js';
 import { Watcher } from './watcher.js';
 import { relayEnabled } from './util.js';
 
@@ -41,6 +41,7 @@ app.get('/api/config', (req, res) => {
     requiresAccessCode: Boolean(ACCESS_CODE),
     checkIntervalMin: CHECK_INTERVAL_MIN,
     relayEnabled,
+    notifyPro: NOTIFY_PRO,
     defaultPrefs: DEFAULT_PREFS,
   });
 });

@@ -6,6 +6,9 @@ import path from 'node:path';
 import webpush from 'web-push';
 import { matchesPrefs } from './store.js';
 
+// Par défaut, seules les annonces de particuliers déclenchent une notification.
+export const NOTIFY_PRO = /^(1|true|oui|yes)$/i.test(process.env.NOTIFY_PRO || '');
+
 export function loadVapidKeys(dataDir) {
   if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
     return { publicKey: process.env.VAPID_PUBLIC_KEY, privateKey: process.env.VAPID_PRIVATE_KEY };
@@ -53,6 +56,11 @@ export class Notifier {
   /** Notifie chaque abonné des annonces qui correspondent à ses préférences. */
   async notify(newListings) {
     let sent = 0;
+    if (!NOTIFY_PRO) {
+      const before = newListings.length;
+      newListings = newListings.filter((l) => l.seller === 'particulier');
+      if (before !== newListings.length) console.log(`[push] ${before - newListings.length} annonce(s) de professionnels ou d'annonceur incertain non notifiée(s)`);
+    }
     for (const sub of [...this.store.subscriptions]) {
       const relevant = newListings.filter((l) => matchesPrefs(l, sub.prefs));
       if (!relevant.length) continue;

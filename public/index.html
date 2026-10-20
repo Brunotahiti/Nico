@@ -238,8 +238,9 @@
       <div class="group-title">Annonceur</div>
       <div class="group">
         <label class="row"><div class="ic green"><svg viewBox="0 0 24 24"><path d="M12 2a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 12c5 0 9 2.5 9 5.5V22H3v-2.5C3 16.5 7 14 12 14z"/></svg></div><div class="t">Particuliers</div><div class="switch"><input type="checkbox" name="sellers" value="particulier" checked><span></span></div></label>
-        <label class="row"><div class="ic gray"><svg viewBox="0 0 24 24"><path d="M3 21V8l9-5 9 5v13h-6v-6h-6v6z"/></svg></div><div class="t">Agences et pros</div><div class="switch"><input type="checkbox" name="sellers" value="pro" checked><span></span></div></label>
+        <label class="row" id="row-pro"><div class="ic gray"><svg viewBox="0 0 24 24"><path d="M3 21V8l9-5 9 5v13h-6v-6h-6v6z"/></svg></div><div class="t">Agences et pros</div><div class="switch"><input type="checkbox" name="sellers" value="pro"><span></span></div></label>
       </div>
+      <div class="group-foot hidden" id="pro-note">Les annonces d'agences et de professionnels ne sont jamais envoyées en notification. Elles restent visibles dans la liste avec le badge « Pro ».</div>
 
       <div class="group-title">Critères</div>
       <div class="group">
@@ -449,6 +450,10 @@
 
   async function init() {
     try { state.config = await api('/api/config'); } catch (err) { toast(`Impossible de joindre le serveur : ${err.message}`, 'err'); }
+    if (state.config && !state.config.notifyPro) {
+      $('#row-pro').classList.add('hidden'); $('#pro-note').classList.remove('hidden');
+      const p = document.querySelector('input[name=sellers][value=particulier]'); p.checked = true; p.disabled = true;
+    }
     if (state.config?.requiresAccessCode) {
       $('#access-field').classList.remove('hidden');
       $('#access-code').value = localStorage.getItem('accessCode') || '';
