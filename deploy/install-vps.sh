@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Installe et lance Nick Immobilier sur un VPS Debian/Ubuntu, avec HTTPS.
 #
-#   curl -fsSL https://raw.githubusercontent.com/Brunotahiti/Nico/claude/gallant-hopper-e2wyec/deploy/install-vps.sh | sudo -E bash
+#   curl -fsSL https://raw.githubusercontent.com/Brunotahiti/Nico/main/deploy/install-vps.sh | sudo -E bash
 #
 # Variables facultatives (à placer après « sudo », ex. : | sudo ACCESS_CODE=x DOMAIN=y bash) :
 #   DOMAIN=immo.mondomaine.pf   nom de domaine pointant vers le VPS (sinon : <ip>.sslip.io, sans rien à configurer)
@@ -20,7 +20,7 @@ if [ "${INSTALL_SELF_COPY:-}" != "1" ] && [ -n "${BASH_SOURCE[0]:-}" ] && [ -f "
 fi
 
 REPO="${REPO:-https://github.com/Brunotahiti/Nico.git}"
-BRANCH="${BRANCH:-claude/gallant-hopper-e2wyec}"
+BRANCH="${BRANCH:-main}"
 APP_DIR="${APP_DIR:-/opt/veille-immo}"
 CHECK_INTERVAL_MIN="${CHECK_INTERVAL_MIN:-5}"
 

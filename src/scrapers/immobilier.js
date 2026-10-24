@@ -3,7 +3,7 @@
 //   GET /api/bid/light?page=0&size=N&sort=createdDate,desc&filter={...}&customFilter={...}
 // On réutilise exactement cet appel (c'est celui que fait le navigateur).
 
-import { fetchWithRetry, slugify } from '../util.js';
+import { fetchWithRetry, slugify, extractContacts, normPhone } from '../util.js';
 
 export const SOURCE = 'immobilier.pf';
 const BASE = 'https://www.immobilier.pf';
@@ -54,6 +54,12 @@ function normalize(bid) {
   const r = bid.realty || {};
   const photo = Array.isArray(r.photos) && r.photos.length ? r.photos[0] : null;
   const priceAmount = bid.isPriceHidden ? null : bid.price?.amount ?? null;
+  const c = (bid.contacts || [])[0] || {};
+  const fromText = extractContacts(bid.description);
+  const phones = new Set(fromText.phones);
+  for (const p of [c.phoneNumber1, c.phoneNumber2, r.agency?.mobile1, r.agency?.mobile2, r.agency?.phoneNumber1, r.agency?.phoneNumber2]) { const n = normPhone(p); if (n.length === 8) phones.add(n); }
+  const emails = new Set(fromText.emails);
+  if (c.email) emails.add(String(c.email).toLowerCase());
   return {
     id: `immo-${bid.id}`,
     source: SOURCE,
@@ -68,6 +74,9 @@ function normalize(bid) {
     area: r.area ?? null,
     agency: r.agency?.name || '',
     seller: r.agency ? 'pro' : 'particulier',
+    contactName: [c.firstName, c.lastName].filter(Boolean).join(' ') || c.name || '',
+    phones: [...phones],
+    emails: [...emails],
     description: (bid.description || '').replace(/\s+/g, ' ').trim().slice(0, 300),
     image: photo?.relativeThumbUrl ? `${BASE}/media/${photo.relativeThumbUrl}` : null,
     url: buildUrl(bid),

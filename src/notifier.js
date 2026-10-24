@@ -61,6 +61,7 @@ export class Notifier {
       newListings = newListings.filter((l) => l.seller === 'particulier');
       if (before !== newListings.length) console.log(`[push] ${before - newListings.length} annonce(s) de professionnels ou d'annonceur incertain non notifiée(s)`);
     }
+    const delivered = new Map();
     for (const sub of [...this.store.subscriptions]) {
       const relevant = newListings.filter((l) => matchesPrefs(l, sub.prefs));
       if (!relevant.length) continue;
@@ -72,6 +73,7 @@ export class Notifier {
           { TTL: 60 * 60 * 6, urgency: 'high' },
         );
         sent++;
+        for (const l of relevant) delivered.set(l.id, l);
       } catch (err) {
         if (err.statusCode === 404 || err.statusCode === 410) {
           console.log('[push] abonnement expiré, suppression');
@@ -81,6 +83,7 @@ export class Notifier {
         }
       }
     }
+    if (delivered.size) this.store.addNotifications([...delivered.values()]);
     return sent;
   }
 

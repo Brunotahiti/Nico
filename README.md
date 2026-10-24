@@ -8,7 +8,8 @@ Application web (PWA) qui surveille **immobilier.pf** et **petitesannonces.pf** 
   - immobilier.pf : via l'API interne que le site utilise lui-même (`/api/bid/light`, triée par date de création).
   - petitesannonces.pf : via le flux RSS de la rubrique Immobilier (`rss.php?r=1`). Les annonces « Recherche immobilier » (demandes) sont ignorées.
 - Chaque annonce jamais vue est mémorisée et déclenche une notification **Web Push** vers tous les appareils abonnés.
-- L'application affiche aussi la liste des dernières annonces détectées, avec un lien direct vers l'annonce d'origine.
+- L'application affiche l'historique des notifications reçues, regroupé par jour, avec un lien direct vers l'annonce d'origine.
+- Seules les annonces de particuliers sont notifiées. Une liste noire (téléphone, e-mail, nom ou mot), dans les Réglages ou via « Ignorer cet annonceur », écarte les professionnels qui se présentent comme particuliers.
 - Préférences facultatives par appareil : sites, type (vente / location / autre), prix maximum, mots-clés.
 - Au tout premier démarrage, les annonces déjà en ligne sont mémorisées **sans** envoyer de notification (pas de rafale de 100 alertes).
 
@@ -28,7 +29,7 @@ Les notifications push web fonctionnent sur iPhone à partir d'**iOS 16.4**, uni
 Sur un VPS Debian/Ubuntu, en root :
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Brunotahiti/Nico/claude/gallant-hopper-e2wyec/deploy/install-vps.sh | sudo ACCESS_CODE=unsecret bash
+curl -fsSL https://raw.githubusercontent.com/Brunotahiti/Nico/main/deploy/install-vps.sh | sudo ACCESS_CODE=unsecret bash
 ```
 
 Le script installe Docker, télécharge le code dans `/opt/veille-immo` et lance l'application. Si un Traefik tourne déjà sur le serveur, l'application s'y branche automatiquement (réseau, point d'entrée et résolveur de certificats détectés depuis vos autres conteneurs) ; sinon un reverse proxy Caddy est lancé pour obtenir le certificat HTTPS. Sans nom de domaine, il utilise automatiquement `<ip-du-vps>.sslip.io`. Avec un domaine pointant vers le VPS : ajoutez `DOMAIN=immo.mondomaine.pf` après `sudo`. Relancer la commande met à jour l'application. Pour passer des variables à une installation déjà en place : `sudo env DOMAIN=… ACCESS_CODE=… bash /opt/veille-immo/deploy/install-vps.sh` (avec `sudo -E`, certaines configurations ignorent les variables).

@@ -138,6 +138,35 @@
     @keyframes sh { from { background-position: 200% 0; } to { background-position: -200% 0; } }
     @media (min-width: 720px) { .list { display: grid; grid-template-columns: 1fr 1fr; } }
 
+    /* Fil de notifications */
+    .day { font-size: 20px; font-weight: 700; letter-spacing: .35px; margin: 22px 4px 10px; }
+    .day:first-child { margin-top: 6px; }
+    .notif { display: flex; gap: 12px; align-items: flex-start; background: var(--bg-el); border-radius: 18px; padding: 12px; text-decoration: none; color: inherit; box-shadow: var(--shadow); transition: transform .15s cubic-bezier(.2, .8, .2, 1); }
+    .notif + .notif { margin-top: 10px; }
+    .notif:active { transform: scale(.985); }
+    .notif .th { width: 64px; height: 64px; border-radius: 14px; flex: none; overflow: hidden; display: grid; place-items: center; background: linear-gradient(145deg, var(--blue), var(--indigo)); }
+    .notif .th.location { background: linear-gradient(145deg, #ff9f0a, #ff6b00); } .notif .th.terrain { background: linear-gradient(145deg, #30d158, #0f9d58); }
+    .notif .th svg { width: 30px; height: 30px; fill: #fff; } .notif .th img { width: 100%; height: 100%; object-fit: cover; }
+    .notif .b { flex: 1; min-width: 0; }
+    .notif .top { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--label-2); }
+    .notif .top .src { font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+    .notif .top .time { margin-left: auto; white-space: nowrap; }
+    .notif .top .unread { width: 9px; height: 9px; border-radius: 50%; background: var(--blue); flex: none; }
+    .notif .title { font-weight: 600; font-size: 15px; line-height: 1.3; margin-top: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .notif .price { font-size: 15px; font-weight: 700; color: var(--blue); margin-top: 3px; }
+    .notif .meta { color: var(--label-2); font-size: 13px; margin-top: 2px; }
+    .notif .desc { color: var(--label-2); font-size: 13px; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .notif { cursor: pointer; }
+    .notif .contact { color: var(--label-2); font-size: 12px; margin-top: 4px; }
+    .notif .ignore { margin-top: 8px; border: 0; background: var(--fill); color: var(--red); font: inherit; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
+    .bl-add { display: flex; gap: 8px; }
+    .bl-add input { flex: 1; text-align: left !important; }
+    .bl-add button { border: 0; background: none; color: var(--blue); font: inherit; font-weight: 600; cursor: pointer; padding: 0 2px; }
+    .bl-del { width: 22px; height: 22px; border-radius: 50%; background: var(--red); color: #fff; border: 0; font: 700 16px/22px system-ui; text-align: center; padding: 0; flex: none; cursor: pointer; }
+    .bl-kind { font-size: 12px; color: var(--label-2); }
+    .empty .btn { width: auto; margin-top: 18px; padding: 12px 22px; font-size: 15px; }
+    .empty b { display: block; color: var(--label); font-size: 17px; margin-bottom: 6px; }
+
     /* Alertes : en-tête d'état */
     .hero { text-align: center; padding: 28px 20px 22px; }
     .hero .ring { width: 76px; height: 76px; border-radius: 22px; margin: 0 auto 14px; display: grid; place-items: center; background: var(--fill); color: var(--gray); }
@@ -186,23 +215,17 @@
     <!-- Annonces -->
     <section class="view active" id="view-ads">
       <div class="banner"><picture><source srcset="/img/banner.webp" type="image/webp"><img src="/img/banner.png" alt="Nick Immobilier"></picture></div>
-      <div class="banner-sub"><div class="sub">Veille des annonces · immobilier.pf · petitesannonces.pf</div><div class="status-chip" id="live"><i class="warn"></i><span id="live-text">…</span></div></div>
+      <div class="banner-sub"><div class="sub">Vos notifications · annonces de particuliers</div><div class="status-chip" id="live"><i class="warn"></i><span id="live-text">…</span></div></div>
       <div class="search"><svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 2.2a5.8 5.8 0 1 0 0 11.6 5.8 5.8 0 0 0 0-11.6zm6.1 11 5.2 5.2-1.6 1.6-5.2-5.2z"/></svg><input type="search" id="q" placeholder="Rechercher" autocomplete="off"></div>
       <div class="segmented" id="seg">
-        <button data-f="all" class="active">Tout</button><button data-f="vente">Vente</button><button data-f="location">Location</button><button data-f="particulier">Particuliers</button>
+        <button data-f="all" class="active">Tout</button><button data-f="vente">Vente</button><button data-f="location">Location</button>
       </div>
-      <div class="chips" id="chips">
-        <button class="chip new" data-c="new">Nouveautés</button>
-        <button class="chip" data-c="immobilier.pf">immobilier.pf</button>
-        <button class="chip" data-c="petitesannonces.pf">petitesannonces.pf</button>
-      </div>
-      <div class="section-head"><h2>Dernières annonces</h2><span id="ads-count"></span></div>
-      <div class="list skeleton" id="list"><a class="ad"><div class="cover"></div><div class="body"><div class="title">&nbsp;</div></div></a><a class="ad"><div class="cover"></div><div class="body"><div class="title">&nbsp;</div></div></a></div>
+      <div id="list"><div class="empty">Chargement…</div></div>
     </section>
 
     <!-- Alertes -->
     <section class="view" id="view-alerts">
-      <div class="large-title"><div><h1>Alertes</h1><div class="sub">Notifications sur cet appareil</div></div></div>
+      <div class="large-title"><div><h1>Réglages</h1><div class="sub">Alertes sur cet appareil</div></div></div>
       <div class="group">
         <div class="hero">
           <div class="ring off" id="ring"><svg viewBox="0 0 24 24"><path d="M12 2a1.5 1.5 0 0 1 1.5 1.5v.7A6.5 6.5 0 0 1 18.5 10.5v3.6l1.7 2.6c.6.9 0 2.3-1.2 2.3H5c-1.2 0-1.8-1.4-1.2-2.3l1.7-2.6v-3.6A6.5 6.5 0 0 1 10.5 4.2v-.7A1.5 1.5 0 0 1 12 2zm-2.5 18h5a2.5 2.5 0 0 1-5 0z"/></svg></div>
@@ -248,6 +271,13 @@
         <div class="row"><div class="ic orange"><svg viewBox="0 0 24 24"><path d="M3 5h18v2H3zm0 6h12v2H3zm0 6h18v2H3z"/></svg></div><div class="t">Mots-clés</div><input type="text" id="keywords" placeholder="punaauia, f3, piscine"></div>
       </div>
       <div class="group-foot">Si des mots-clés sont renseignés, seules les annonces qui en contiennent au moins un vous sont envoyées.</div>
+
+      <div class="group-title">Annonceurs ignorés</div>
+      <div class="group">
+        <div class="row bl-add"><div class="ic red"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm-6 8.8v2.4h12v-2.4z"/></svg></div><input type="text" id="bl-input" placeholder="Téléphone, e-mail, nom ou mot" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done"><button id="bl-btn">Ajouter</button></div>
+        <div id="bl-list"></div>
+      </div>
+      <div class="group-foot">Pour écarter les professionnels qui se présentent comme particuliers. Une annonce qui contient l'un de ces numéros, e-mails ou mots ne vous est plus envoyée, et disparaît de vos notifications. Vous pouvez aussi toucher « Ignorer cet annonceur » sur une notification.</div>
       <div class="actions"><button class="btn btn-gray" id="btn-save" disabled>Enregistrer les préférences</button></div>
     </section>
 
@@ -255,7 +285,7 @@
     <section class="view" id="view-status">
       <div class="large-title"><div><h1>État</h1><div class="sub" id="st-interval">…</div></div></div>
       <div class="stats">
-        <div class="stat"><b id="st-total">–</b><span>annonces</span></div>
+        <div class="stat"><b id="st-total">–</b><span>notifications</span></div>
         <div class="stat"><b id="st-today">–</b><span>aujourd'hui</span></div>
         <div class="stat"><b id="st-devices">–</b><span>appareils</span></div>
       </div>
@@ -279,8 +309,8 @@
   </div>
 
   <nav class="tabbar">
-    <button class="active" data-v="ads"><svg viewBox="0 0 24 24"><path d="M12 3 2 11.5h2.5V21h5.5v-6h4v6h5.5v-9.5H22z"/></svg>Annonces<span class="count hidden" id="tab-count"></span></button>
-    <button data-v="alerts"><svg viewBox="0 0 24 24"><path d="M12 2a1.5 1.5 0 0 1 1.5 1.5v.7A6.5 6.5 0 0 1 18.5 10.5v3.6l1.7 2.6c.6.9 0 2.3-1.2 2.3H5c-1.2 0-1.8-1.4-1.2-2.3l1.7-2.6v-3.6A6.5 6.5 0 0 1 10.5 4.2v-.7A1.5 1.5 0 0 1 12 2zm-2.5 18h5a2.5 2.5 0 0 1-5 0z"/></svg>Alertes</button>
+    <button class="active" data-v="ads"><svg viewBox="0 0 24 24"><path d="M12 2a1.5 1.5 0 0 1 1.5 1.5v.7A6.5 6.5 0 0 1 18.5 10.5v3.6l1.7 2.6c.6.9 0 2.3-1.2 2.3H5c-1.2 0-1.8-1.4-1.2-2.3l1.7-2.6v-3.6A6.5 6.5 0 0 1 10.5 4.2v-.7A1.5 1.5 0 0 1 12 2zm-2.5 18h5a2.5 2.5 0 0 1-5 0z"/></svg>Notifications<span class="count hidden" id="tab-count"></span></button>
+    <button data-v="alerts"><svg viewBox="0 0 24 24"><path d="M13.7 2l.5 2.4c.6.2 1.2.5 1.7.9l2.3-.8 1.7 3-1.8 1.6a7 7 0 0 1 0 1.9l1.8 1.6-1.7 3-2.3-.8c-.5.4-1.1.7-1.7.9l-.5 2.4h-3.4l-.5-2.4c-.6-.2-1.2-.5-1.7-.9l-2.3.8-1.7-3 1.8-1.6a7 7 0 0 1 0-1.9L4.1 7.5l1.7-3 2.3.8c.5-.4 1.1-.7 1.7-.9L10.3 2zM12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/></svg>Réglages</button>
     <button data-v="status"><svg viewBox="0 0 24 24"><path d="M4 13h4v8H4zm6-6h4v14h-4zm6-4h4v18h-4z"/></svg>État</button>
   </nav>
   <div class="toast" id="toast"></div>
@@ -288,22 +318,60 @@
 <script>
 (() => {
   const $ = (s) => document.querySelector(s);
-  const state = { config: null, reg: null, sub: null, listings: [], seg: 'all', chip: null, query: '', lastVisit: Number(localStorage.getItem('lastVisit') || Date.now()), newCount: 0 };
+  const state = { config: null, reg: null, sub: null, notifications: [], seg: 'all', query: '', blocklist: (() => { try { return JSON.parse(localStorage.getItem('blocklist') || '[]'); } catch { return []; } })(), lastVisit: Number(localStorage.getItem('lastVisit') || Date.now()), newCount: 0 };
   const ua = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
   const pushSupported = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   let toastTimer;
-  const TITLES = { ads: 'Nick Immobilier', alerts: 'Alertes', status: 'État' };
+  const TITLES = { ads: 'Notifications', alerts: 'Réglages', status: 'État' };
 
   function toast(text, cls = '') { const el = $('#toast'); el.textContent = text; el.className = `toast show ${cls}`; clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('show'), 3200); }
   function urlB64ToUint8Array(b64) { const padding = '='.repeat((4 - (b64.length % 4)) % 4); const raw = atob((b64 + padding).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...raw].map((c) => c.charCodeAt(0))); }
   const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   function timeAgo(iso) { if (!iso) return ''; const d = (Date.now() - new Date(iso).getTime()) / 1000; if (d < 60) return 'à l\'instant'; if (d < 3600) return `il y a ${Math.floor(d / 60)} min`; if (d < 86400) return `il y a ${Math.floor(d / 3600)} h`; return `il y a ${Math.floor(d / 86400)} j`; }
-  function readPrefs() { const vals = (n) => [...document.querySelectorAll(`input[name=${n}]:checked`)].map((i) => i.value); return { sources: vals('sources'), kinds: vals('kinds'), sellers: vals('sellers'), maxPrice: Number($('#max-price').value) || null, keywords: $('#keywords').value.split(',').map((k) => k.trim()).filter(Boolean) }; }
-  function writePrefs(p) { for (const i of document.querySelectorAll('input[name=sources]')) i.checked = p.sources.includes(i.value); for (const i of document.querySelectorAll('input[name=kinds]')) i.checked = p.kinds.includes(i.value); for (const i of document.querySelectorAll('input[name=sellers]')) i.checked = (p.sellers || ['particulier', 'pro']).includes(i.value); $('#max-price').value = p.maxPrice || ''; $('#keywords').value = (p.keywords || []).join(', '); }
+  function readPrefs() { const vals = (n) => [...document.querySelectorAll(`input[name=${n}]:checked`)].map((i) => i.value); return { sources: vals('sources'), kinds: vals('kinds'), sellers: vals('sellers'), blocklist: state.blocklist, maxPrice: Number($('#max-price').value) || null, keywords: $('#keywords').value.split(',').map((k) => k.trim()).filter(Boolean) }; }
+  function writePrefs(p) { for (const i of document.querySelectorAll('input[name=sources]')) i.checked = p.sources.includes(i.value); for (const i of document.querySelectorAll('input[name=kinds]')) i.checked = p.kinds.includes(i.value); for (const i of document.querySelectorAll('input[name=sellers]')) i.checked = (p.sellers || ['particulier', 'pro']).includes(i.value); $('#max-price').value = p.maxPrice || ''; $('#keywords').value = (p.keywords || []).join(', '); if (Array.isArray(p.blocklist)) { state.blocklist = p.blocklist; saveBlocklistLocal(); renderBlocklist(); } }
   function headers() { const h = { 'Content-Type': 'application/json' }; const c = $('#access-code').value; if (c) h['x-access-code'] = c; return h; }
   async function api(path, body) { const res = await fetch(path, body ? { method: 'POST', headers: headers(), body: JSON.stringify(body) } : { cache: 'no-store' }); const data = await res.json().catch(() => ({})); if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`); return data; }
+
+  /* ---------- Annonceurs ignorés ---------- */
+  const digitsOnly = (v) => String(v || '').replace(/\D/g, '');
+  const normPhone = (v) => digitsOnly(v).slice(-8);
+  const fmtPhone = (p) => String(p).replace(/(\d{2})(?=\d)/g, '$1 ').trim();
+  function blockedBy(l, list = state.blocklist) {
+    const hay = `${l.title} ${l.description} ${l.contactName || ''} ${l.agency || ''} ${(l.emails || []).join(' ')}`.toLowerCase();
+    const hayDigits = digitsOnly(`${l.title} ${l.description}`);
+    for (const raw of list) {
+      const e = String(raw || '').trim().toLowerCase(); if (!e) continue;
+      if (e.includes('@')) { if ((l.emails || []).includes(e) || hay.includes(e)) return raw; }
+      else if (digitsOnly(e).length >= 6) { const p = normPhone(e); if ((l.phones || []).includes(p) || hayDigits.includes(p)) return raw; }
+      else if (hay.includes(e)) return raw;
+    }
+    return null;
+  }
+  const kindOf = (e) => e.includes('@') ? 'E-mail' : digitsOnly(e).length >= 6 ? 'Téléphone' : 'Nom ou mot';
+  function saveBlocklistLocal() { try { localStorage.setItem('blocklist', JSON.stringify(state.blocklist)); } catch {} }
+  function renderBlocklist() {
+    $('#bl-list').innerHTML = state.blocklist.map((e, i) => `<div class="row"><button class="bl-del" data-i="${i}" aria-label="Retirer">−</button><div class="t">${esc(e)}<small class="bl-kind">${kindOf(e)}</small></div></div>`).join('');
+  }
+  async function setBlocklist(list, message) {
+    state.blocklist = [...new Set(list.map((x) => String(x).trim()).filter(Boolean))];
+    saveBlocklistLocal(); renderBlocklist(); renderList(); renderBadge();
+    if (state.sub) { try { const r = await api('/api/subscribe', { subscription: state.sub.toJSON(), prefs: readPrefs() }); state.blocklist = r.prefs.blocklist; saveBlocklistLocal(); } catch (err) { return toast(err.message, 'err'); } }
+    if (message) toast(message, 'ok');
+  }
+  function addBlock() {
+    const v = $('#bl-input').value.trim(); if (!v) return;
+    $('#bl-input').value = '';
+    setBlocklist([...state.blocklist, v], 'Annonceur ignoré');
+  }
+  function ignoreAdvertiser(n) {
+    const entries = [...(n.phones || []).map(fmtPhone), ...(n.emails || [])];
+    if (!entries.length && n.contactName) entries.push(n.contactName);
+    if (!entries.length) return toast('Aucune coordonnée dans cette annonce : ajoutez un nom ou un mot dans les Réglages', 'err');
+    setBlocklist([...state.blocklist, ...entries], `Ignoré : ${entries.join(', ')}`);
+  }
 
   /* ---------- Notifications ---------- */
   function renderNotif() {
@@ -324,46 +392,67 @@
       if (perm !== 'granted') { renderNotif(); return toast('Permission refusée.', 'err'); }
       const sub = await state.reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: urlB64ToUint8Array(state.config.vapidPublicKey) });
       const r = await api('/api/subscribe', { subscription: sub.toJSON(), prefs: readPrefs() });
-      state.sub = sub; writePrefs(r.prefs); renderNotif(); toast('Alertes activées', 'ok');
+      state.sub = sub; writePrefs(r.prefs); renderNotif(); renderList(); toast('Alertes activées', 'ok');
     } catch (err) { toast(`Activation impossible : ${err.message}`, 'err'); }
   }
   async function savePrefs() { try { const r = await api('/api/subscribe', { subscription: state.sub.toJSON(), prefs: readPrefs() }); writePrefs(r.prefs); toast('Préférences enregistrées', 'ok'); } catch (err) { toast(err.message, 'err'); } }
   async function unsubscribe() { try { await api('/api/unsubscribe', { endpoint: state.sub.endpoint }); await state.sub.unsubscribe(); state.sub = null; renderNotif(); toast('Alertes désactivées'); } catch (err) { toast(err.message, 'err'); } }
   async function testNotif() { try { await api('/api/test-notification', { subscription: state.sub.toJSON() }); toast('Notification de test envoyée', 'ok'); } catch (err) { toast(err.message, 'err'); } }
 
-  /* ---------- Annonces ---------- */
-  const isNew = (l) => l.seenAt && new Date(l.seenAt).getTime() > state.lastVisit;
+  /* ---------- Notifications ---------- */
+  const isNew = (n) => n.notifiedAt && new Date(n.notifiedAt).getTime() > state.lastVisit;
   const HOUSE = '<svg viewBox="0 0 24 24"><path d="M12 3 2 11.5h2.5V21h5.5v-6h4v6h5.5v-9.5H22z"/></svg>';
   const KEY = '<svg viewBox="0 0 24 24"><path d="M14 2a6 6 0 0 1 4.5 9.9L22 15.5V19h-3.5l-1-1h-2v-2h-2l-1.6-1.6A6 6 0 1 1 14 2zm1.5 3a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>';
   const LEAF = '<svg viewBox="0 0 24 24"><path d="M21 3c-9 0-15 4-16 12 0 1 .2 2 .6 3L3 21l1.5 1.5 2.6-2.6c1 .4 2 .6 3 .6 8-1 12-7 12-16zM8 17l6-6 1 1-6 6z"/></svg>';
+  const BELL_ICON = '<svg viewBox="0 0 24 24"><path d="M12 2a1.5 1.5 0 0 1 1.5 1.5v.7A6.5 6.5 0 0 1 18.5 10.5v3.6l1.7 2.6c.6.9 0 2.3-1.2 2.3H5c-1.2 0-1.8-1.4-1.2-2.3l1.7-2.6v-3.6A6.5 6.5 0 0 1 10.5 4.2v-.7A1.5 1.5 0 0 1 12 2zm-2.5 18h5a2.5 2.5 0 0 1-5 0z"/></svg>';
+  function dayLabel(iso) {
+    const d = new Date(iso), t = new Date(); const y = new Date(); y.setDate(t.getDate() - 1);
+    if (d.toDateString() === t.toDateString()) return 'Aujourd\'hui';
+    if (d.toDateString() === y.toDateString()) return 'Hier';
+    const s = d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  const hhmm = (iso) => new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   function renderList() {
     const q = state.query.trim().toLowerCase();
-    const items = state.listings.filter((l) => {
-      if (state.seg === 'particulier' && l.seller !== 'particulier') return false;
-      if (state.seg !== 'all' && state.seg !== 'particulier' && l.kind !== state.seg) return false;
-      if (state.chip === 'new' && !isNew(l)) return false;
-      if (state.chip && state.chip !== 'new' && l.source !== state.chip) return false;
-      if (q && !`${l.title} ${l.description} ${l.location} ${l.category} ${l.agency}`.toLowerCase().includes(q)) return false;
+    const items = state.notifications.filter((n) => {
+      if (blockedBy(n)) return false;
+      if (state.seg !== 'all' && n.kind !== state.seg) return false;
+      if (q && !`${n.title} ${n.description} ${n.location} ${n.category}`.toLowerCase().includes(q)) return false;
       return true;
     });
-    const list = $('#list'); list.classList.remove('skeleton');
-    $('#ads-count').textContent = items.length ? `${items.length}` : '';
-    if (!items.length) { list.innerHTML = `<div class="empty">${HOUSE}<br>${state.listings.length ? 'Aucune annonce ne correspond.' : 'Aucune annonce pour le moment.<br>La liste se remplit au fil des publications.'}</div>`; return; }
-    list.innerHTML = items.map((l) => {
-      const src = l.source === 'immobilier.pf' ? 'immo' : 'pa';
-      const meta = [l.location, l.area ? `${l.area} m²` : '', l.agency].filter(Boolean).map((m) => `<span>${esc(m)}</span>`).join('');
-      const sellerPill = l.seller === 'particulier' ? '<span class="pill part">Particulier</span>' : l.seller === 'pro' ? '<span class="pill pro">Pro</span>' : '';
-      const glyph = l.kind === 'location' ? KEY : (l.category || '').toLowerCase().includes('terrain') ? LEAF : HOUSE;
-      return `<a class="ad" href="${esc(l.url)}" target="_blank" rel="noopener">
-        <div class="cover">${l.image ? `<img src="${esc(l.image)}" alt="" loading="lazy" onerror="this.remove()">` : glyph}
-          <div class="pills"><span class="pill ${src}">${esc(l.source)}</span>${sellerPill}${isNew(l) ? '<span class="pill new">Nouveau</span>' : ''}</div></div>
-        <div class="body">
-          <div class="row1"><div class="price">${esc(l.priceLabel || 'Prix non précisé')}</div><div class="when">${timeAgo(l.seenAt || l.publishedAt)}</div></div>
-          <div class="title">${esc(l.title)}</div>
-          ${meta ? `<div class="meta">${meta}</div>` : ''}
-          ${l.description ? `<div class="desc">${esc(l.description)}</div>` : ''}
-        </div></a>`;
-    }).join('');
+    const list = $('#list');
+    if (!items.length) {
+      if (state.notifications.length) { list.innerHTML = `<div class="empty">${HOUSE}<b>Aucune notification ne correspond</b>Modifiez la recherche ou le filtre.</div>`; return; }
+      list.innerHTML = state.sub
+        ? `<div class="empty">${BELL_ICON}<b>Aucune notification pour l'instant</b>Dès qu'un particulier publie une annonce sur immobilier.pf ou petitesannonces.pf, elle apparaît ici et sur votre écran verrouillé.</div>`
+        : `<div class="empty">${BELL_ICON}<b>Aucune notification</b>Activez les alertes pour recevoir ici les annonces de particuliers.<br><button class="btn btn-filled" id="go-settings">Activer les alertes</button></div>`;
+      $('#go-settings')?.addEventListener('click', () => showView('alerts'));
+      return;
+    }
+    let html = '', lastDay = '';
+    for (const n of items) {
+      const day = dayLabel(n.notifiedAt);
+      if (day !== lastDay) { html += `<div class="day">${day}</div>`; lastDay = day; }
+      const terrain = (n.category || '').toLowerCase().includes('terrain');
+      const thCls = n.kind === 'location' ? 'location' : terrain ? 'terrain' : '';
+      const glyph = n.kind === 'location' ? KEY : terrain ? LEAF : HOUSE;
+      const meta = [n.location, n.area ? `${n.area} m²` : '', n.category].filter(Boolean).join(' · ');
+      const contact = [n.contactName, ...(n.phones || []).map(fmtPhone), ...(n.emails || [])].filter(Boolean).join(' · ');
+      const canIgnore = (n.phones || []).length || (n.emails || []).length || n.contactName;
+      html += `<div class="notif" data-url="${esc(n.url)}" data-id="${esc(n.id)}">
+        <div class="th ${thCls}">${n.image ? `<img src="${esc(n.image)}" alt="" loading="lazy" onerror="this.replaceWith(document.createRange().createContextualFragment('${glyph.replace(/"/g, '&quot;')}'))">` : glyph}</div>
+        <div class="b">
+          <div class="top"><span class="src">${esc(n.source)}</span>${isNew(n) ? '<span class="unread"></span>' : ''}<span class="time">${hhmm(n.notifiedAt)}</span></div>
+          <div class="title">${esc(n.title)}</div>
+          <div class="price">${esc(n.priceLabel || 'Prix non précisé')}</div>
+          ${meta ? `<div class="meta">${esc(meta)}</div>` : ''}
+          ${n.description ? `<div class="desc">${esc(n.description)}</div>` : ''}
+          ${contact ? `<div class="contact">${esc(contact)}</div>` : ''}
+          ${canIgnore ? '<button class="ignore">Ignorer cet annonceur</button>' : ''}
+        </div></div>`;
+    }
+    list.innerHTML = html;
   }
   function renderStatus(d) {
     state.status = d;
@@ -375,17 +464,19 @@
     state.health = health; state.liveCls = liveCls;
     if ($('#sheet').classList.contains('show')) renderSheet();
     $('#live').querySelector('i').className = liveCls; $('#live-text').textContent = !d.lastCheck ? 'Démarrage' : liveCls === 'ok' ? 'En veille' : liveCls === 'warn' ? 'Perturbé' : 'Problème';
-    const today = new Date().toDateString();
-    $('#st-total').textContent = d.listings.length;
-    $('#st-today').textContent = d.listings.filter((l) => new Date(l.seenAt || l.publishedAt).toDateString() === today).length;
+    $('#st-total').textContent = d.total ?? 0;
+    $('#st-today').textContent = d.today ?? 0;
     $('#st-devices').textContent = d.subscribers;
     $('#st-interval').textContent = `Toutes les ${state.config?.checkIntervalMin ?? '?'} min · dernière vérification ${d.lastCheck ? timeAgo(d.lastCheck) : 'jamais'}`;
     $('#sources').innerHTML = sources.map(([name, s]) => { const h = health(s); const detail = s.ok ? `${s.count} annonces lues` : h === 'warn' ? `Échec passager · dernière réussite ${timeAgo(s.lastOkAt)}` : esc(s.error || 'Erreur'); return `<div class="row"><span class="dot ${h}"></span><div class="t">${esc(name)}<small>${detail}</small></div><div class="v">${timeAgo(s.checkedAt)}</div></div>`; }).join('') || '<div class="row"><div class="t"><small>Première vérification en cours…</small></div></div>';
-    state.newCount = d.listings.filter(isNew).length;
+    renderBadge();
+  }
+  function renderBadge() {
+    state.newCount = state.notifications.filter((n) => isNew(n) && !blockedBy(n)).length;
     const tc = $('#tab-count'); tc.textContent = state.newCount; tc.classList.toggle('hidden', !state.newCount);
   }
   async function loadListings() {
-    try { const d = await api('/api/listings?limit=200'); state.listings = d.listings; renderStatus(d); renderList(); }
+    try { const d = await api('/api/notifications?limit=300'); state.notifications = d.notifications; renderStatus(d); renderList(); }
     catch (err) { $('#live-text').textContent = 'Hors ligne'; $('#live').querySelector('i').className = 'err'; toast(`Serveur injoignable : ${err.message}`, 'err'); }
   }
 
@@ -432,8 +523,16 @@
   window.addEventListener('scroll', () => $('#navbar').classList.toggle('scrolled', window.scrollY > 36), { passive: true });
   document.querySelector('.tabbar').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) showView(b.dataset.v); });
   $('#seg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (!b) return; state.seg = b.dataset.f; for (const x of $('#seg').children) x.classList.toggle('active', x === b); renderList(); });
-  $('#chips').addEventListener('click', (e) => { const b = e.target.closest('.chip'); if (!b) return; state.chip = state.chip === b.dataset.c ? null : b.dataset.c; for (const x of $('#chips').children) x.classList.toggle('active', x.dataset.c === state.chip); renderList(); });
   $('#q').addEventListener('input', (e) => { state.query = e.target.value; renderList(); });
+  $('#list').addEventListener('click', (e) => {
+    const card = e.target.closest('.notif'); if (!card) return;
+    if (e.target.closest('.ignore')) { const n = state.notifications.find((x) => x.id === card.dataset.id); if (n) ignoreAdvertiser(n); return; }
+    window.open(card.dataset.url, '_blank', 'noopener');
+  });
+  $('#bl-btn').addEventListener('click', addBlock);
+  $('#bl-input').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); addBlock(); } });
+  $('#bl-list').addEventListener('click', (e) => { const b = e.target.closest('.bl-del'); if (!b) return; const list = [...state.blocklist]; const [gone] = list.splice(Number(b.dataset.i), 1); setBlocklist(list, `Retiré : ${gone}`); });
+  renderBlocklist();
   $('#btn-enable').addEventListener('click', subscribe);
   $('#btn-save').addEventListener('click', savePrefs);
   $('#btn-disable').addEventListener('click', unsubscribe);

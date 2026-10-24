@@ -1,5 +1,5 @@
 // Service worker : réception des notifications push et ouverture de l'annonce.
-const CACHE = 'nick-immobilier-v1';
+const CACHE = 'nick-immobilier-v2';
 const SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icons/icon-192.png', '/img/banner.webp'];
 
 self.addEventListener('install', (event) => {

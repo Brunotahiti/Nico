@@ -56,6 +56,19 @@ app.get('/api/listings', (req, res) => {
   });
 });
 
+app.get('/api/notifications', (req, res) => {
+  const limit = Math.min(500, Number(req.query.limit) || 200);
+  const today = new Date().toDateString();
+  res.json({
+    lastCheck: store.state.lastCheck,
+    sources: store.state.sourcesStatus,
+    subscribers: store.subscriptions.length,
+    total: store.notifications.length,
+    today: store.notifications.filter((n) => new Date(n.notifiedAt).toDateString() === today).length,
+    notifications: store.notifications.slice(0, limit),
+  });
+});
+
 app.post('/api/subscribe', async (req, res) => {
   if (!checkAccess(req, res)) return;
   const { subscription, prefs } = req.body || {};

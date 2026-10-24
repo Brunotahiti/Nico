@@ -3,7 +3,7 @@
 // (r=1 = Immobilier, 50 annonces les plus récentes). Les identifiants d'annonce
 // sont croissants, ce qui permet de détecter les nouveautés de façon fiable.
 
-import { fetchWithRetry, decodeEntities } from '../util.js';
+import { fetchWithRetry, decodeEntities, extractContacts } from '../util.js';
 
 export const SOURCE = 'petitesannonces.pf';
 // Le site répond aussi sous www.petites-annonces.pf (avec tiret) ; on garde la forme
@@ -42,6 +42,7 @@ function parseItem(block) {
     .replace(/<[^>]+>/g, '')
     .replace(/Prix\s*:\s*[\d\s .]+\s*XPF/i, '');
   text = decodeEntities(text).replace(/\s+/g, ' ').trim();
+  const contacts = extractContacts(title, text);
   const pubDate = tag(block, 'pubDate');
   return {
     id: `pa-${sourceId}`,
@@ -57,6 +58,9 @@ function parseItem(block) {
     area: null,
     agency: '',
     seller: 'inconnu', // précisé ensuite par enrich()
+    contactName: '',
+    phones: contacts.phones,
+    emails: contacts.emails,
     description: text.slice(0, 300),
     image: null,
     url: link.replace(/^http:/, 'https:'),
@@ -107,7 +111,8 @@ export async function enrichBatch(items, { maxDetail = 20 } = {}) {
   } catch (err) {
     console.warn(`[petitesannonces] page de liste indisponible : ${err.message}`);
   }
-  for (const it of items.filter((i) => i.seller === 'inconnu').slice(0, maxDetail)) {
+  // Page de l'annonce : type d'annonceur si inconnu, et coordonnées pour les particuliers (liste noire)
+  for (const it of items.filter((i) => (i.seller === 'inconnu' || i.seller === 'particulier') && !i.detailFetched).slice(0, maxDetail)) {
     try { await enrich(it); } catch (err) { console.warn(`[petitesannonces] détail ${it.sourceId} indisponible : ${err.message}`); }
   }
   return items;
@@ -131,6 +136,17 @@ export function guessSeller(item) {
 export async function enrich(item) {
   const res = await fetchWithRetry(item.url, { headers: { Accept: 'text/html' } }, { retries: 2, timeoutMs: 25000 });
   const html = Buffer.from(await res.arrayBuffer()).toString('latin1');
+  // Bloc « CONTACTS & INFOS » : téléphone, e-mail, prénom saisis par l'annonceur
+  const block = html.match(/CONTACTS &amp; INFOS<\/h3>\s*<p>([\s\S]*?)<\/p>/i);
+  if (block) {
+    const txt = decodeEntities(block[1].replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, ' ')).replace(/\s+/g, ' ').trim();
+    const found = extractContacts(txt);
+    item.phones = [...new Set([...(item.phones || []), ...found.phones])];
+    item.emails = [...new Set([...(item.emails || []), ...found.emails])];
+    const name = txt.match(/Contact\s*:\s*([A-Za-zÀ-ÿ' -]{2,30}?)(?=\s*(?:\+?\d|-|$))/i);
+    if (name) item.contactName = name[1].trim();
+  }
+  item.detailFetched = true;
   const head = html.match(/N&deg;\s*(\d+)([^<]*)<br>\s*Du\s+(\d{2})\/(\d{2})\/(\d{2})/i);
   if (head && head[1] === item.sourceId) {
     item.seller = /\(PRO\)/i.test(head[2]) ? 'pro' : 'particulier';

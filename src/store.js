@@ -3,9 +3,11 @@
 // abonnements push et clés VAPID.
 
 import fs from 'node:fs';
+import { blockedBy } from './util.js';
 import path from 'node:path';
 
 const MAX_LISTINGS = 300; // annonces conservées pour l'affichage
+const MAX_NOTIFICATIONS = 500; // historique des notifications affiché dans l'app
 const MAX_SEEN_PER_SOURCE = 5000; // identifiants mémorisés pour la détection
 
 export class Store {
@@ -23,6 +25,7 @@ export class Store {
       initialized: false,
     };
     this.load();
+    if (!Array.isArray(this.state.notifications)) this.backfillNotifications();
     this._seenSets = {};
     for (const [src, ids] of Object.entries(this.state.seen)) this._seenSets[src] = new Set(ids);
   }
@@ -70,6 +73,34 @@ export class Store {
     return this.state.listings;
   }
 
+  /** Enregistre les annonces effectivement envoyées en notification. */
+  addNotifications(items) {
+    if (!Array.isArray(this.state.notifications)) this.state.notifications = [];
+    const known = new Set(this.state.notifications.map((n) => n.id));
+    const now = new Date().toISOString();
+    const fresh = items.filter((l) => !known.has(l.id)).map((l) => ({ ...l, notifiedAt: now }));
+    this.state.notifications = [...fresh, ...this.state.notifications].slice(0, MAX_NOTIFICATIONS);
+    this.save();
+  }
+
+  get notifications() {
+    return this.state.notifications || [];
+  }
+
+  /**
+   * Première mise en route du journal : on y reprend les annonces de particuliers
+   * détectées depuis le premier abonnement, qui sont celles qui ont été notifiées.
+   */
+  backfillNotifications() {
+    const since = this.state.subscriptions.map((s) => s.createdAt).filter(Boolean).sort()[0];
+    this.state.notifications = since
+      ? this.state.listings
+          .filter((l) => l.seller === 'particulier' && l.seenAt && l.seenAt >= since)
+          .map((l) => ({ ...l, notifiedAt: l.seenAt }))
+      : [];
+    if (this.state.notifications.length) console.log(`[store] historique des notifications initialisé avec ${this.state.notifications.length} annonce(s)`);
+  }
+
   get subscriptions() {
     return this.state.subscriptions;
   }
@@ -103,6 +134,7 @@ export const DEFAULT_PREFS = {
   sellers: ['particulier', 'pro'],
   maxPrice: null,
   keywords: [],
+  blocklist: [],
 };
 
 export function normalizePrefs(prefs = {}) {
@@ -111,6 +143,9 @@ export function normalizePrefs(prefs = {}) {
   p.kinds = Array.isArray(p.kinds) ? p.kinds.filter((k) => DEFAULT_PREFS.kinds.includes(k)) : DEFAULT_PREFS.kinds;
   p.sellers = Array.isArray(p.sellers) ? p.sellers.filter((k) => DEFAULT_PREFS.sellers.includes(k)) : DEFAULT_PREFS.sellers;
   p.maxPrice = Number.isFinite(Number(p.maxPrice)) && Number(p.maxPrice) > 0 ? Number(p.maxPrice) : null;
+  p.blocklist = Array.isArray(p.blocklist)
+    ? [...new Set(p.blocklist.map((k) => String(k).trim().slice(0, 100)).filter(Boolean))].slice(0, 300)
+    : [];
   p.keywords = Array.isArray(p.keywords)
     ? p.keywords.map((k) => String(k).trim().toLowerCase()).filter(Boolean).slice(0, 20)
     : [];
@@ -122,6 +157,7 @@ export function matchesPrefs(listing, prefs) {
   const p = normalizePrefs(prefs);
   if (!p.sources.includes(listing.source)) return false;
   if (!p.kinds.includes(listing.kind)) return false;
+  if (blockedBy(listing, p.blocklist)) return false;
   // Type d'annonceur inconnu (page indisponible) : on laisse passer plutôt que de rater l'annonce
   if (listing.seller && listing.seller !== 'inconnu' && !p.sellers.includes(listing.seller)) return false;
   if (p.maxPrice && listing.price && listing.price > p.maxPrice) return false;
