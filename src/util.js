@@ -35,6 +35,26 @@ export function extractContacts(...texts) {
   return { phones: [...phones], emails: [...emails] };
 }
 
+export function wordHit(text, entry) {
+  // Mot ou expression de la liste noire présent dans le texte, en mot entier (« agence » ≠ « agencement »),
+  // en ignorant les tournures qui le nient : « pas d'agence », « sans frais d'agence », « agences s'abstenir »…
+  const norm = (s) => String(s || '').toLowerCase().replace(/[’`´]/g, "'").normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const t = norm(text), e = norm(entry).trim();
+  if (!e) return false;
+  const pat = e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+  const re = new RegExp(`(^|[^a-z0-9])(${pat})(s|x)?(?=$|[^a-z0-9])`, 'g');
+  let m;
+  while ((m = re.exec(t))) {
+    const start = m.index + m[1].length, end = start + m[2].length + (m[3] ? m[3].length : 0);
+    const before = t.slice(Math.max(0, start - 30), start);
+    const after = t.slice(end, end + 50);
+    const negBefore = /(^|[^a-z])(pas|sans|aucune?|ni|non|hors|zero|0|jamais)\s+(de\s+)?(frais\s+)?(d'\s*|d\s+|de\s+|des\s+)?$/.test(before);
+    const negAfter = /^\s*((,|et|ou|&|\/)\s*[a-z]+\s*)*(s'abstenir|s'abstiennent|merci de s'abstenir|non merci|non acceptee?s?|pas acceptee?s?|refusee?s?|exclue?s?|interdite?s?)/.test(after);
+    if (!negBefore && !negAfter) return true;
+  }
+  return false;
+}
+
 /**
  * Une annonce correspond-elle à une entrée de la liste noire ?
  * Entrée avec « @ » : e-mail ; 6 chiffres ou plus : téléphone ; sinon : mot ou nom.
@@ -51,7 +71,7 @@ export function blockedBy(listing, blocklist = []) {
     } else if (digitsOnly(entry).length >= 6) {
       const p = normPhone(entry);
       if (phones.includes(p) || hayDigits.includes(p)) return raw;
-    } else if (hay.includes(entry)) {
+    } else if (wordHit(hay, entry)) {
       return raw;
     }
   }

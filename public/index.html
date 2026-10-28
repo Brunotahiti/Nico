@@ -285,7 +285,7 @@
         <div class="row bl-add"><div class="ic red"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 1 0 20 10 10 0 0 1 0-20zm-6 8.8v2.4h12v-2.4z"/></svg></div><input type="text" id="bl-input" placeholder="Téléphone, e-mail, nom ou mot" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done"><button id="bl-btn">Ajouter</button></div>
         <div id="bl-list"></div>
       </div>
-      <div class="group-foot">Pour écarter les professionnels qui se présentent comme particuliers. Une annonce qui contient l'un de ces numéros, e-mails ou mots ne vous est plus envoyée, et disparaît de vos notifications. Vous pouvez aussi toucher « Ignorer cet annonceur » sur une notification.</div>
+      <div class="group-foot">Pour écarter les professionnels qui se présentent comme particuliers. Une annonce qui contient l'un de ces numéros, e-mails ou mots ne vous est plus envoyée, et disparaît de vos notifications. Les mots sont reconnus en entier et les tournures négatives sont ignorées : avec « agence » dans la liste, une annonce qui dit « pas d'agence » ou « agences s'abstenir » reste visible. Vous pouvez aussi toucher « Ignorer cet annonceur » sur une notification.</div>
       <div class="actions"><button class="btn btn-gray" id="btn-save" disabled>Enregistrer les préférences</button></div>
     </section>
 
@@ -347,6 +347,25 @@
   const digitsOnly = (v) => String(v || '').replace(/\D/g, '');
   const normPhone = (v) => digitsOnly(v).slice(-8);
   const fmtPhone = (p) => String(p).replace(/(\d{2})(?=\d)/g, '$1 ').trim();
+  function wordHit(text, entry) {
+    // Mot ou expression de la liste noire présent dans le texte, en mot entier (« agence » ≠ « agencement »),
+    // en ignorant les tournures qui le nient : « pas d'agence », « sans frais d'agence », « agences s'abstenir »…
+    const norm = (s) => String(s || '').toLowerCase().replace(/[’`´]/g, "'").normalize('NFD').replace(/[̀-ͯ]/g, '');
+    const t = norm(text), e = norm(entry).trim();
+    if (!e) return false;
+    const pat = e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+    const re = new RegExp(`(^|[^a-z0-9])(${pat})(s|x)?(?=$|[^a-z0-9])`, 'g');
+    let m;
+    while ((m = re.exec(t))) {
+      const start = m.index + m[1].length, end = start + m[2].length + (m[3] ? m[3].length : 0);
+      const before = t.slice(Math.max(0, start - 30), start);
+      const after = t.slice(end, end + 50);
+      const negBefore = /(^|[^a-z])(pas|sans|aucune?|ni|non|hors|zero|0|jamais)\s+(de\s+)?(frais\s+)?(d'\s*|d\s+|de\s+|des\s+)?$/.test(before);
+      const negAfter = /^\s*((,|et|ou|&|\/)\s*[a-z]+\s*)*(s'abstenir|s'abstiennent|merci de s'abstenir|non merci|non acceptee?s?|pas acceptee?s?|refusee?s?|exclue?s?|interdite?s?)/.test(after);
+      if (!negBefore && !negAfter) return true;
+    }
+    return false;
+  }
   function blockedBy(l, list = state.blocklist) {
     const hay = `${l.title} ${l.description} ${l.contactName || ''} ${l.agency || ''} ${(l.emails || []).join(' ')}`.toLowerCase();
     const hayDigits = digitsOnly(`${l.title} ${l.description}`);
@@ -354,7 +373,7 @@
       const e = String(raw || '').trim().toLowerCase(); if (!e) continue;
       if (e.includes('@')) { if ((l.emails || []).includes(e) || hay.includes(e)) return raw; }
       else if (digitsOnly(e).length >= 6) { const p = normPhone(e); if ((l.phones || []).includes(p) || hayDigits.includes(p)) return raw; }
-      else if (hay.includes(e)) return raw;
+      else if (wordHit(hay, e)) return raw;
     }
     return null;
   }

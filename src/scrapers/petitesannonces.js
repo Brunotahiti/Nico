@@ -125,7 +125,7 @@ export async function enrichBatch(items, { maxDetail = 20 } = {}) {
 export function guessSeller(item) {
   const t = `${item.title} ${item.description}`;
   if (/(^|[\s-])[A-Z]{2}\d{4,6}\b/.test(item.title) || /^[A-Z]{3,}-/.test(item.title)) return 'pro';
-  if (/particulier\s+(à|a)\s+particulier|\bpas d'agence\b|\bsans agence\b/i.test(t)) return 'particulier';
+  if (/particulier\s+(à|a)\s+particulier|pas\s+d['’ ]\s*agence|sans\s+(frais\s+d['’]\s*)?agence|agences?\s+((et|,)\s*\S+\s+)*s['’]abstenir/i.test(t)) return 'particulier';
   return 'inconnu';
 }
 
