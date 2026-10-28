@@ -102,13 +102,13 @@ export function sleep(ms) {
  * fetch avec délai d'attente et nouvelles tentatives (les sites polynésiens
  * coupent parfois la connexion).
  */
-export async function fetchWithRetry(url, options = {}, { retries = 3, timeoutMs = 30000 } = {}) {
+export async function fetchWithRetry(url, options = {}, { retries = 3, timeoutMs = 30000, relayRetries = 6 } = {}) {
   let lastError;
   const relayed = relayFor(url);
   const extra = relayed && RELAY_KEY ? { 'x-relay-key': RELAY_KEY } : {};
   // Via le relais, l'hébergeur distant coupe une partie des connexions : on insiste
   // davantage, et on change l'URL à chaque essai pour contourner tout cache intermédiaire.
-  if (relayed) retries = Math.max(retries, 6);
+  if (relayed) retries = Math.max(retries, relayRetries);
   for (let attempt = 0; attempt <= retries; attempt++) {
     const target = relayed ? `${relayed}%26_%3D${Date.now()}${attempt}` : url;
     const controller = new AbortController();

@@ -33,7 +33,7 @@ export class Notifier {
     if (newListings.length === 1) {
       const l = newListings[0];
       const seller = l.seller === 'particulier' ? 'Particulier' : l.seller === 'pro' ? (l.agency || 'Pro') : '';
-      const details = [l.priceLabel, l.location, seller].filter(Boolean).join(' · ');
+      const details = [l.priceLabel, l.location, seller, `N° ${l.sourceId}`].filter(Boolean).join(' · ');
       return {
         title: `Nouvelle annonce · ${l.source}`,
         body: details ? `${l.title}\n${details}` : l.title,

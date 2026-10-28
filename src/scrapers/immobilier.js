@@ -85,6 +85,21 @@ function normalize(bid) {
 }
 
 /**
+ * L'annonce est-elle toujours en ligne ? true / false ; lève une erreur si le site ne répond pas.
+ * Une annonce supprimée renvoie 404, une annonce louée ou vendue n'est plus « disponible ».
+ */
+export async function checkOnline(item) {
+  try {
+    const res = await fetchWithRetry(`${BASE}/api/bid/${item.sourceId}`, { headers: { Accept: 'application/json' } }, { retries: 1, timeoutMs: 20000 });
+    const bid = await res.json();
+    return bid.isAvailable !== false && (!bid.status?.code || bid.status.code === 'PUBLISHED');
+  } catch (err) {
+    if (/HTTP (404|410)/.test(err.message)) return false;
+    throw err;
+  }
+}
+
+/**
  * Renvoie les `size` annonces les plus récentes (les plus récentes en premier).
  */
 export async function fetchLatest({ size = 60 } = {}) {

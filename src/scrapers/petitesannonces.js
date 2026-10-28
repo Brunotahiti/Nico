@@ -119,6 +119,17 @@ export async function enrichBatch(items, { maxDetail = 20 } = {}) {
 }
 
 /**
+ * L'annonce est-elle toujours en ligne ? Une annonce supprimée redirige vers l'accueil,
+ * qui ne porte pas la mention « N° <identifiant> ».
+ */
+export async function checkOnline(item) {
+  const res = await fetchWithRetry(item.url, { headers: { Accept: 'text/html' } }, { retries: 1, timeoutMs: 20000, relayRetries: 2 });
+  const html = Buffer.from(await res.arrayBuffer()).toString('latin1');
+  if (html.length < 2000) throw new Error('page incomplète');
+  return new RegExp(`N&deg;\\s*${item.sourceId}\\b`).test(html);
+}
+
+/**
  * Dernier recours si le site reste injoignable : les annonces d'agences portent
  * presque toujours une référence (« - LM22658 », « VA21099 ») ou un préfixe d'agence.
  */

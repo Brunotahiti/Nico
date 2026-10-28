@@ -35,6 +35,26 @@ export class Watcher {
     clearTimeout(this.timer);
   }
 
+  /** Repère les annonces notifiées qui ont été retirées du site (déjà louées ou vendues). */
+  async checkAvailability() {
+    const todo = this.store.notificationsToCheck();
+    if (!todo.length) return;
+    let removed = 0;
+    for (const n of todo) {
+      const mod = SOURCES.find((m) => m.SOURCE === n.source);
+      if (!mod?.checkOnline) continue;
+      try {
+        const online = await mod.checkOnline(n);
+        this.store.setNotificationOnline(n.id, online);
+        if (!online) { removed++; console.log(`[watch] annonce retirée du site : ${n.title}`); }
+      } catch (err) {
+        // Site injoignable : on réessaiera au prochain passage
+      }
+    }
+    this.store.save();
+    if (removed) console.log(`[watch] ${removed} annonce(s) retirée(s) signalée(s)`);
+  }
+
   async checkOnce() {
     if (this.running) return { skipped: true };
     this.running = true;
@@ -116,6 +136,7 @@ export class Watcher {
       } else {
         console.log('[watch] rien de nouveau');
       }
+      await this.checkAvailability();
       return { fresh: fresh.length, sent, firstRun };
     } finally {
       this.running = false;

@@ -83,6 +83,24 @@ export class Store {
     this.save();
   }
 
+  /** Notifications à traiter dont la présence en ligne doit être revérifiée. */
+  notificationsToCheck({ maxAgeDays = 30, everyMinutes = 60, limit = 15 } = {}) {
+    const now = Date.now();
+    return (this.state.notifications || [])
+      .filter((n) => !n.doneAt && !n.removedAt)
+      .filter((n) => now - new Date(n.notifiedAt).getTime() < maxAgeDays * 86400e3)
+      .filter((n) => !n.onlineCheckedAt || now - new Date(n.onlineCheckedAt).getTime() > everyMinutes * 60e3)
+      .sort((a, b) => (a.onlineCheckedAt || '').localeCompare(b.onlineCheckedAt || ''))
+      .slice(0, limit);
+  }
+
+  setNotificationOnline(id, online) {
+    const n = (this.state.notifications || []).find((x) => x.id === id);
+    if (!n) return;
+    n.onlineCheckedAt = new Date().toISOString();
+    if (online === false) n.removedAt = n.onlineCheckedAt;
+  }
+
   /** Marque une notification comme traitée (ou la remet à traiter). */
   setNotificationDone(id, done) {
     const n = (this.state.notifications || []).find((x) => x.id === id);

@@ -158,6 +158,10 @@
     .notif .desc { color: var(--label-2); font-size: 13px; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .notif { cursor: pointer; }
     .notif .contact { color: var(--label-2); font-size: 12px; margin-top: 4px; }
+    .notif .ref { display: inline-block; font-size: 12px; font-weight: 700; color: var(--label); background: var(--fill); padding: 2px 7px; border-radius: 6px; margin-top: 4px; letter-spacing: .2px; }
+    .notif .gone { display: inline-block; font-size: 12px; font-weight: 700; color: #fff; background: var(--gray); padding: 2px 8px; border-radius: 6px; margin: 4px 0 0 6px; }
+    .notif.is-gone .title, .notif.is-gone .price { text-decoration: line-through; text-decoration-thickness: 1.5px; opacity: .6; }
+    .notif .share-btn { border: 0; font: inherit; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; background: rgba(0, 122, 255, .12); color: var(--blue); }
     .notif .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
     .notif .acts .ignore { margin-top: 0; }
     .notif .done-btn, .notif .undo-btn { border: 0; font: inherit; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
@@ -402,11 +406,29 @@
     return [...new Set(entries)].filter((e) => !state.blocklist.includes(e));
   }
   function ignoreAdvertiser(n) {
-    const entries = ignoreEntries(n);
-    if (!entries.length) return toast('Aucune coordonnée dans cette annonce : ajoutez un nom ou un mot dans les Réglages', 'err');
+    let entries = ignoreEntries(n);
+    if (!entries.length) {
+      const typed = window.prompt(`Cette annonce n'indique ni téléphone ni e-mail : l'annonceur passe par le formulaire du site.\n\nQue faut-il ignorer ? Un numéro, un e-mail, un nom ou un mot qui revient dans ses annonces :`, '');
+      if (!typed || !typed.trim()) return;
+      entries = [typed.trim()];
+    }
     const lines = entries.map((e) => `• ${e} (${kindOf(e)})`).join('\n');
     if (!window.confirm(`Ignorer cet annonceur ?\n\nSeront bloqués :\n${lines}\n\nToutes ses annonces seront écartées. Modifiable dans Réglages.`)) return;
     setBlocklist([...state.blocklist, ...entries], `Ignoré : ${entries.join(', ')}`);
+  }
+
+  /* ---------- Partager le lien (AirDrop vers le Mac, Mail, Messages…) ---------- */
+  async function shareListing(n) {
+    if (!n) return;
+    const ref = n.source === 'immobilier.pf' ? `Réf. ${n.sourceId}` : `N° ${n.sourceId}`;
+    const text = `${n.title} · ${n.priceLabel || ''} · ${ref}`;
+    try {
+      if (navigator.share) { await navigator.share({ title: n.title, text, url: n.url }); return; }
+      await navigator.clipboard.writeText(`${text}\n${n.url}`);
+      toast('Lien copié', 'ok');
+    } catch (err) {
+      if (err?.name !== 'AbortError') toast(`${ref} · ${n.url}`, 'ok');
+    }
   }
 
   /* ---------- Fait / À traiter ---------- */
@@ -493,18 +515,19 @@
       const glyph = n.kind === 'location' ? KEY : terrain ? LEAF : HOUSE;
       const meta = [n.location, n.area ? `${n.area} m²` : '', n.category].filter(Boolean).join(' · ');
       const contact = [n.contactName, ...(n.phones || []).map(fmtPhone), ...(n.emails || [])].filter(Boolean).join(' · ');
-      const canIgnore = (n.phones || []).length || (n.emails || []).length || n.contactName;
-      html += `<div class="notif${n.doneAt ? ' is-done' : ''}" data-url="${esc(n.url)}" data-id="${esc(n.id)}">
+      const ref = n.source === 'immobilier.pf' ? `Réf. ${n.sourceId}` : `N° ${n.sourceId}`;
+      html += `<div class="notif${n.doneAt ? ' is-done' : ''}${n.removedAt ? ' is-gone' : ''}" data-url="${esc(n.url)}" data-id="${esc(n.id)}">
         <div class="th ${thCls}">${n.image ? `<img src="${esc(n.image)}" alt="" loading="lazy" onerror="this.replaceWith(document.createRange().createContextualFragment('${glyph.replace(/"/g, '&quot;')}'))">` : glyph}</div>
         <div class="b">
           <div class="top"><span class="src">${esc(n.source)}</span>${isNew(n) ? '<span class="unread"></span>' : ''}<span class="time">${hhmm(n.notifiedAt)}</span></div>
           <div class="title">${esc(n.title)}</div>
           <div class="price">${esc(n.priceLabel || 'Prix non précisé')}</div>
+          <div><span class="ref">${esc(ref)}</span>${n.removedAt ? '<span class="gone">Annonce retirée du site</span>' : ''}</div>
           ${meta ? `<div class="meta">${esc(meta)}</div>` : ''}
           ${n.description ? `<div class="desc">${esc(n.description)}</div>` : ''}
           ${contact ? `<div class="contact">${esc(contact)}</div>` : ''}
           ${n.doneAt ? `<div class="done-at">Faite ${timeAgo(n.doneAt)}</div>` : ''}
-          <div class="acts">${n.doneAt ? '<button class="undo-btn">À traiter ⏳</button>' : '<button class="done-btn">Fait ✅</button>'}${canIgnore ? '<button class="ignore">Ignorer cet annonceur</button>' : ''}</div>
+          <div class="acts">${n.doneAt ? '<button class="undo-btn">À traiter ⏳</button>' : '<button class="done-btn">Fait ✅</button>'}<button class="share-btn">Partager le lien</button><button class="ignore">Ignorer cet annonceur</button></div>
         </div></div>`;
     }
     list.innerHTML = html;
@@ -587,6 +610,9 @@
     if (e.target.closest('.ignore')) { const n = state.notifications.find((x) => x.id === card.dataset.id); if (n) ignoreAdvertiser(n); return; }
     if (e.target.closest('.done-btn')) return markDone(card.dataset.id, true, card);
     if (e.target.closest('.undo-btn')) return markDone(card.dataset.id, false, card);
+    const n = state.notifications.find((x) => x.id === card.dataset.id);
+    if (e.target.closest('.share-btn')) return shareListing(n);
+    if (n?.removedAt) return toast('Annonce retirée du site, sans doute déjà louée ou vendue', 'err');
     window.open(card.dataset.url, '_blank', 'noopener');
   });
   $('#bl-btn').addEventListener('click', addBlock);
