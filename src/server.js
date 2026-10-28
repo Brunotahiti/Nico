@@ -64,9 +64,18 @@ app.get('/api/notifications', (req, res) => {
     sources: store.state.sourcesStatus,
     subscribers: store.subscriptions.length,
     total: store.notifications.length,
+    todo: store.notifications.filter((n) => !n.doneAt).length,
     today: store.notifications.filter((n) => new Date(n.notifiedAt).toDateString() === today).length,
     notifications: store.notifications.slice(0, limit),
   });
+});
+
+app.post('/api/notifications/done', (req, res) => {
+  if (!checkAccess(req, res)) return;
+  const { id, done = true } = req.body || {};
+  const n = id ? store.setNotificationDone(String(id), Boolean(done)) : null;
+  if (!n) return res.status(404).json({ error: 'Notification introuvable' });
+  res.json({ ok: true, id: n.id, doneAt: n.doneAt || null });
 });
 
 app.post('/api/subscribe', async (req, res) => {

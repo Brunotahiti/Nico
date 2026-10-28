@@ -83,6 +83,15 @@ export class Store {
     this.save();
   }
 
+  /** Marque une notification comme traitée (ou la remet à traiter). */
+  setNotificationDone(id, done) {
+    const n = (this.state.notifications || []).find((x) => x.id === id);
+    if (!n) return null;
+    if (done) n.doneAt = new Date().toISOString(); else delete n.doneAt;
+    this.save();
+    return n;
+  }
+
   get notifications() {
     return this.state.notifications || [];
   }

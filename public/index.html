@@ -158,6 +158,14 @@
     .notif .desc { color: var(--label-2); font-size: 13px; margin-top: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
     .notif { cursor: pointer; }
     .notif .contact { color: var(--label-2); font-size: 12px; margin-top: 4px; }
+    .notif .acts { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .notif .acts .ignore { margin-top: 0; }
+    .notif .done-btn, .notif .undo-btn { border: 0; font: inherit; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 8px; cursor: pointer; }
+    .notif .done-btn { background: rgba(52, 199, 89, .16); color: var(--green); }
+    .notif .undo-btn { background: rgba(255, 149, 0, .16); color: var(--orange); }
+    .notif.is-done { opacity: .7; }
+    .notif.leaving { opacity: 0; transform: translateX(60px); transition: opacity .25s ease, transform .25s ease; }
+    .notif .done-at { color: var(--green); font-size: 12px; margin-top: 4px; font-weight: 600; }
     .notif .ignore { margin-top: 8px; border: 0; background: var(--fill); color: var(--red); font: inherit; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 8px; cursor: pointer; }
     .bl-add { display: flex; gap: 8px; }
     .bl-add input { flex: 1; text-align: left !important; }
@@ -218,7 +226,7 @@
       <div class="banner-sub"><div class="sub">Vos notifications · annonces de particuliers</div><div class="status-chip" id="live"><i class="warn"></i><span id="live-text">…</span></div></div>
       <div class="search"><svg viewBox="0 0 24 24"><path d="M10 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm0 2.2a5.8 5.8 0 1 0 0 11.6 5.8 5.8 0 0 0 0-11.6zm6.1 11 5.2 5.2-1.6 1.6-5.2-5.2z"/></svg><input type="search" id="q" placeholder="Rechercher" autocomplete="off"></div>
       <div class="segmented" id="seg">
-        <button data-f="all" class="active">Tout</button><button data-f="vente">Vente</button><button data-f="location">Location</button>
+        <button data-f="todo" class="active">À traiter ⏳</button><button data-f="done">Faites ✅</button>
       </div>
       <div id="list"><div class="empty">Chargement…</div></div>
     </section>
@@ -285,7 +293,7 @@
     <section class="view" id="view-status">
       <div class="large-title"><div><h1>État</h1><div class="sub" id="st-interval">…</div></div></div>
       <div class="stats">
-        <div class="stat"><b id="st-total">–</b><span>notifications</span></div>
+        <div class="stat"><b id="st-total">–</b><span>à traiter</span></div>
         <div class="stat"><b id="st-today">–</b><span>aujourd'hui</span></div>
         <div class="stat"><b id="st-devices">–</b><span>appareils</span></div>
       </div>
@@ -318,7 +326,7 @@
 <script>
 (() => {
   const $ = (s) => document.querySelector(s);
-  const state = { config: null, reg: null, sub: null, notifications: [], seg: 'all', query: '', blocklist: (() => { try { return JSON.parse(localStorage.getItem('blocklist') || '[]'); } catch { return []; } })(), lastVisit: Number(localStorage.getItem('lastVisit') || Date.now()), newCount: 0 };
+  const state = { config: null, reg: null, sub: null, notifications: [], seg: 'todo', query: '', blocklist: (() => { try { return JSON.parse(localStorage.getItem('blocklist') || '[]'); } catch { return []; } })(), lastVisit: Number(localStorage.getItem('lastVisit') || Date.now()), newCount: 0 };
   const ua = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
@@ -350,7 +358,8 @@
     }
     return null;
   }
-  const kindOf = (e) => e.includes('@') ? 'E-mail' : digitsOnly(e).length >= 6 ? 'Téléphone' : 'Nom ou mot';
+  const kindOf = (e) => e.startsWith('@') ? 'Domaine e-mail (toute l\'agence)' : e.includes('@') ? 'E-mail' : digitsOnly(e).length >= 6 ? 'Téléphone' : 'Nom ou mot';
+  const PUBLIC_MAIL = /^(gmail|googlemail|hotmail|outlook|live|msn|yahoo|ymail|icloud|me|mac|aol|gmx|proton|protonmail|mail|email|orange|wanadoo|free|sfr|neuf|laposte|bbox|vini|mana|lagoon|caramail)\./i;
   function saveBlocklistLocal() { try { localStorage.setItem('blocklist', JSON.stringify(state.blocklist)); } catch {} }
   function renderBlocklist() {
     $('#bl-list').innerHTML = state.blocklist.map((e, i) => `<div class="row"><button class="bl-del" data-i="${i}" aria-label="Retirer">−</button><div class="t">${esc(e)}<small class="bl-kind">${kindOf(e)}</small></div></div>`).join('');
@@ -366,11 +375,31 @@
     $('#bl-input').value = '';
     setBlocklist([...state.blocklist, v], 'Annonceur ignoré');
   }
-  function ignoreAdvertiser(n) {
+  function ignoreEntries(n) {
     const entries = [...(n.phones || []).map(fmtPhone), ...(n.emails || [])];
+    // Adresse non grand public (ex. …@manea-immo.com) : on bloque aussi tout le domaine de l'agence
+    for (const e of n.emails || []) { const d = e.split('@')[1]; if (d && !PUBLIC_MAIL.test(d)) entries.push(`@${d}`); }
     if (!entries.length && n.contactName) entries.push(n.contactName);
+    return [...new Set(entries)].filter((e) => !state.blocklist.includes(e));
+  }
+  function ignoreAdvertiser(n) {
+    const entries = ignoreEntries(n);
     if (!entries.length) return toast('Aucune coordonnée dans cette annonce : ajoutez un nom ou un mot dans les Réglages', 'err');
+    const lines = entries.map((e) => `• ${e} (${kindOf(e)})`).join('\n');
+    if (!window.confirm(`Ignorer cet annonceur ?\n\nSeront bloqués :\n${lines}\n\nToutes ses annonces seront écartées. Modifiable dans Réglages.`)) return;
     setBlocklist([...state.blocklist, ...entries], `Ignoré : ${entries.join(', ')}`);
+  }
+
+  /* ---------- Fait / À traiter ---------- */
+  async function markDone(id, done, card) {
+    const n = state.notifications.find((x) => x.id === id); if (!n) return;
+    const previous = n.doneAt;
+    if (card) { card.classList.add('leaving'); await new Promise((r) => setTimeout(r, 230)); }
+    n.doneAt = done ? new Date().toISOString() : undefined;
+    renderList(); renderBadge();
+    try { const r = await api('/api/notifications/done', { id, done }); n.doneAt = r.doneAt || undefined; }
+    catch (err) { n.doneAt = previous; renderList(); renderBadge(); toast(err.message, 'err'); return; }
+    toast(done ? 'Marquée comme faite ✅' : 'Remise à traiter ⏳', 'ok');
   }
 
   /* ---------- Notifications ---------- */
@@ -417,13 +446,19 @@
     const q = state.query.trim().toLowerCase();
     const items = state.notifications.filter((n) => {
       if (blockedBy(n)) return false;
-      if (state.seg !== 'all' && n.kind !== state.seg) return false;
+      if (state.seg === 'todo' && n.doneAt) return false;
+      if (state.seg === 'done' && !n.doneAt) return false;
       if (q && !`${n.title} ${n.description} ${n.location} ${n.category}`.toLowerCase().includes(q)) return false;
       return true;
     });
     const list = $('#list');
     if (!items.length) {
-      if (state.notifications.length) { list.innerHTML = `<div class="empty">${HOUSE}<b>Aucune notification ne correspond</b>Modifiez la recherche ou le filtre.</div>`; return; }
+      if (state.notifications.length) {
+        list.innerHTML = q ? `<div class="empty">${HOUSE}<b>Aucune notification ne correspond</b>Modifiez la recherche.</div>`
+          : state.seg === 'todo' ? `<div class="empty"><div style="font-size:48px;line-height:1">✅</div><b>Tout est traité</b>Rien à traiter pour l'instant. Les nouvelles annonces de particuliers apparaîtront ici.</div>`
+          : `<div class="empty">${HOUSE}<b>Aucune annonce traitée</b>Touchez « Fait » sur une notification pour la ranger ici.</div>`;
+        return;
+      }
       list.innerHTML = state.sub
         ? `<div class="empty">${BELL_ICON}<b>Aucune notification pour l'instant</b>Dès qu'un particulier publie une annonce sur immobilier.pf ou petitesannonces.pf, elle apparaît ici et sur votre écran verrouillé.</div>`
         : `<div class="empty">${BELL_ICON}<b>Aucune notification</b>Activez les alertes pour recevoir ici les annonces de particuliers.<br><button class="btn btn-filled" id="go-settings">Activer les alertes</button></div>`;
@@ -440,7 +475,7 @@
       const meta = [n.location, n.area ? `${n.area} m²` : '', n.category].filter(Boolean).join(' · ');
       const contact = [n.contactName, ...(n.phones || []).map(fmtPhone), ...(n.emails || [])].filter(Boolean).join(' · ');
       const canIgnore = (n.phones || []).length || (n.emails || []).length || n.contactName;
-      html += `<div class="notif" data-url="${esc(n.url)}" data-id="${esc(n.id)}">
+      html += `<div class="notif${n.doneAt ? ' is-done' : ''}" data-url="${esc(n.url)}" data-id="${esc(n.id)}">
         <div class="th ${thCls}">${n.image ? `<img src="${esc(n.image)}" alt="" loading="lazy" onerror="this.replaceWith(document.createRange().createContextualFragment('${glyph.replace(/"/g, '&quot;')}'))">` : glyph}</div>
         <div class="b">
           <div class="top"><span class="src">${esc(n.source)}</span>${isNew(n) ? '<span class="unread"></span>' : ''}<span class="time">${hhmm(n.notifiedAt)}</span></div>
@@ -449,7 +484,8 @@
           ${meta ? `<div class="meta">${esc(meta)}</div>` : ''}
           ${n.description ? `<div class="desc">${esc(n.description)}</div>` : ''}
           ${contact ? `<div class="contact">${esc(contact)}</div>` : ''}
-          ${canIgnore ? '<button class="ignore">Ignorer cet annonceur</button>' : ''}
+          ${n.doneAt ? `<div class="done-at">Faite ${timeAgo(n.doneAt)}</div>` : ''}
+          <div class="acts">${n.doneAt ? '<button class="undo-btn">À traiter ⏳</button>' : '<button class="done-btn">Fait ✅</button>'}${canIgnore ? '<button class="ignore">Ignorer cet annonceur</button>' : ''}</div>
         </div></div>`;
     }
     list.innerHTML = html;
@@ -464,7 +500,7 @@
     state.health = health; state.liveCls = liveCls;
     if ($('#sheet').classList.contains('show')) renderSheet();
     $('#live').querySelector('i').className = liveCls; $('#live-text').textContent = !d.lastCheck ? 'Démarrage' : liveCls === 'ok' ? 'En veille' : liveCls === 'warn' ? 'Perturbé' : 'Problème';
-    $('#st-total').textContent = d.total ?? 0;
+    $('#st-total').textContent = d.todo ?? 0;
     $('#st-today').textContent = d.today ?? 0;
     $('#st-devices').textContent = d.subscribers;
     $('#st-interval').textContent = `Toutes les ${state.config?.checkIntervalMin ?? '?'} min · dernière vérification ${d.lastCheck ? timeAgo(d.lastCheck) : 'jamais'}`;
@@ -472,8 +508,11 @@
     renderBadge();
   }
   function renderBadge() {
-    state.newCount = state.notifications.filter((n) => isNew(n) && !blockedBy(n)).length;
+    state.newCount = state.notifications.filter((n) => !n.doneAt && !blockedBy(n)).length;
     const tc = $('#tab-count'); tc.textContent = state.newCount; tc.classList.toggle('hidden', !state.newCount);
+    const segTodo = document.querySelector('#seg button[data-f=todo]'); if (segTodo) segTodo.textContent = state.newCount ? `À traiter (${state.newCount}) ⏳` : 'À traiter ⏳';
+    // Pastille sur l'icône de l'écran d'accueil (iOS 16.4+, app installée)
+    try { if (navigator.setAppBadge) state.newCount ? navigator.setAppBadge(state.newCount) : navigator.clearAppBadge(); } catch {}
   }
   async function loadListings() {
     try { const d = await api('/api/notifications?limit=300'); state.notifications = d.notifications; renderStatus(d); renderList(); }
@@ -527,6 +566,8 @@
   $('#list').addEventListener('click', (e) => {
     const card = e.target.closest('.notif'); if (!card) return;
     if (e.target.closest('.ignore')) { const n = state.notifications.find((x) => x.id === card.dataset.id); if (n) ignoreAdvertiser(n); return; }
+    if (e.target.closest('.done-btn')) return markDone(card.dataset.id, true, card);
+    if (e.target.closest('.undo-btn')) return markDone(card.dataset.id, false, card);
     window.open(card.dataset.url, '_blank', 'noopener');
   });
   $('#bl-btn').addEventListener('click', addBlock);

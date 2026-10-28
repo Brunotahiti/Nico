@@ -58,6 +58,22 @@ export function blockedBy(listing, blocklist = []) {
   return null;
 }
 
+// Messageries grand public : une adresse chez elles ne dit rien du statut de l'annonceur.
+const PUBLIC_MAIL = /^(gmail|googlemail|hotmail|outlook|live|msn|yahoo|ymail|icloud|me|mac|aol|gmx|proton|protonmail|mail|email|orange|wanadoo|free|sfr|neuf|laposte|bbox|vini|mana|lagoon|caramail)\./i;
+// Domaine d'adresse qui trahit une agence ou un professionnel de l'immobilier.
+const PRO_DOMAIN = /(immo|immobil|agence|realty|realestate|estate|propert|habitat|gestion|syndic|transaction|invest|foncier|promot)/i;
+
+export const emailDomain = (e) => String(e || '').toLowerCase().split('@')[1] || '';
+export const isPublicMail = (e) => PUBLIC_MAIL.test(emailDomain(e));
+/** Domaine d'agence trouvé parmi les e-mails de l'annonce (ex. manea-immo.com), sinon null. */
+export function proEmailDomain(listing) {
+  for (const e of listing.emails || []) {
+    const d = emailDomain(e);
+    if (d && !isPublicMail(e) && PRO_DOMAIN.test(d)) return d;
+  }
+  return null;
+}
+
 export function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }

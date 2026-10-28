@@ -3,6 +3,7 @@
 
 import * as immobilier from './scrapers/immobilier.js';
 import * as petitesannonces from './scrapers/petitesannonces.js';
+import { proEmailDomain } from './util.js';
 
 const SOURCES = [immobilier, petitesannonces];
 const MAX_ENRICH_PER_CYCLE = 20;
@@ -66,6 +67,12 @@ export class Watcher {
           console.error(`[watch] ${mod.SOURCE} : ${err.message}`);
         }
         this.store.state.sourcesStatus[mod.SOURCE] = status;
+      }
+
+      // Faux particuliers : une adresse e-mail au nom d'une agence (ex. …@manea-immo.com) les trahit
+      for (const item of fresh) {
+        const d = item.seller !== 'pro' ? proEmailDomain(item) : null;
+        if (d) { item.seller = 'pro'; item.sellerReason = `adresse d'agence (${d})`; console.log(`[watch] ${item.title} : reclassée pro, ${item.sellerReason}`); }
       }
 
       // Annonces dont l'annonceur reste inconnu : on attend le passage suivant plutôt que de risquer une annonce pro
